@@ -3,6 +3,7 @@ import time
 from logger.app_logger import AppLogger
 
 from src.app.app_object import MultiProcessManagerAppFromCate
+from src.config.project_config import ProjectConfig
 from src.process_category.enum_category import E_CATE
 from src.process_category.process_category import ProcessCategory
 
@@ -25,6 +26,7 @@ class Downloader(MultiProcessManagerAppFromCate):
 def main():
     try:
         AppLogger.set_config("../conf/logging.conf", "data-pipeline")
+        ProjectConfig.set_config("../conf/application_windows.conf")
         ProcessCategory.instance().register_downloader()
 
         app = Downloader(E_CATE.DOWNLOADER)
