@@ -5,6 +5,7 @@ description = "data-pipeline"
 requires-python = ">=3.11"
 dependencies = [
     "oncx-core",
+    "redis>=7.1.0",
 ]
 
 [dependency-groups]
@@ -23,4 +24,4 @@ reportOptionalMemberAccess = "none"
 reportOptionalContextManager = "none"
 
 [tool.uv.sources]
-oncx-core = { git = "https://github.com/oncocross/oncx-core.git", rev = "1.13.0" }
+oncx-core = { git = "https://github.com/oncocross/oncx-core.git", rev = "1.14.0" }
