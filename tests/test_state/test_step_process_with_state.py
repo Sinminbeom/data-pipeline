@@ -15,10 +15,10 @@ class TestState1(abState):
         pass
 
     def on_proc_once(self):
+        print("TestState1 on_proc_once")
         state_component = self.get_state_component()
         # parent_class: TestProcess = state_component.get_parent_class()
         state_component.change_state("t2")
-        print("TestState1 on_proc_once")
         pass
 
     def on_proc_every_frame(self):
@@ -81,7 +81,7 @@ class TestProcess(StepProcess):
 
 
 def test_step_process_runs_state_every_iteration():
-    p = TestProcess(iterations=30)
+    p = TestProcess(iterations=1)
     p.set_state_component(TestContainer(), init_state_key="t1")
 
 

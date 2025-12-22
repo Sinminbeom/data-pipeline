@@ -1,20 +1,18 @@
-from src.common.state.state import abState
-from src.common.state.state_manager import StateManager
+from collections.abc import Mapping
+from typing import Iterator, Dict
+
+from src.common.state.state import TKey, abState, TOwner
 
 
-class StateContainer:
-    def __init__(self, states: dict[str, abState]) -> None:
-        self._states = states
-        self.state_manager: StateManager | None = None
+class StateContainer(Mapping[TKey, abState[TOwner, TKey]]):
+    def __init__(self, state: Dict[TKey, abState[TOwner, TKey]]) -> None:
+        self._states: Dict[TKey, abState[TOwner, TKey]] = state
 
-    def set_states(self, states: dict[str, abState]) -> None:
-        self._states = states
+    def __getitem__(self, key: TKey) -> abState[TOwner, TKey]:
+        return self._states[key]
 
-    def get_state(self, state_key: str) -> abState:
-        return self._states[state_key]
+    def __iter__(self) -> Iterator[TKey]:
+        return iter(self._states)
 
-    def set_state_manager(self, state_manager: StateManager) -> None:
-        self.state_manager = state_manager
-
-    def get_state_manager(self) -> StateManager | None:
-        return self.state_manager
+    def __len__(self) -> int:
+        return len(self._states)
