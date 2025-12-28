@@ -43,7 +43,7 @@ class MultiProcessManagerApp(abApp):
     def __init__(self, app_name):
         super().__init__()
         self._app_name = app_name
-        self._multi_process_manager=MultiProcessManager()
+        self._multi_process_manager = MultiProcessManager()
 
     def add_process(self, process: abProcess):
         self._multi_process_manager.append(process)

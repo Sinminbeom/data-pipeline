@@ -1,37 +1,39 @@
 import time
 
-from Log.cLogger import cLogger, E_LOG
+from logger.app_logger import AppLogger
 
-from App.AppObject import cMpAppFromCate
-from App.Category.cCateGory import cProcessCate, E_CATE
+from src.app.app_object import MultiProcessManagerAppFromCate
+from src.config.project_config import ProjectConfig
+from src.process_category.enum_category import E_CATE
+from src.process_category.process_category import ProcessCategory
 
 
-class cMessageBridge(cMpAppFromCate):
+class MessageBridge(MultiProcessManagerAppFromCate):
 
     def __init__(self, *_cate):
         super().__init__(E_CATE.MESSAGE_BRIDGE, *_cate)
-
         pass
 
-    def Init(self):
-        self.getMP().Start()
+    def init(self):
+        self.get_multi_process_manager().start()
 
-    def OnRun(self):
+    def on_run(self):
         time.sleep(0.1)
         pass
 
 
-
 def main():
     try:
-        cProcessCate.instance().RegisterMessageBridge()
+        AppLogger.set_config("../conf/logging.conf", "message-bridge")
+        ProjectConfig.set_config("../conf/application_windows.conf")
+        ProcessCategory.instance().register_rest_server()
 
-        app = cMessageBridge(E_CATE.MESSAGE_BRIDGE)
-        app.Init()
-        app.Run()
+        app = MessageBridge(E_CATE.MESSAGE_BRIDGE)
+        app.init()
+        app.run()
 
     except Exception as e:
-        cLogger.instance().Print(E_LOG.EXCEPTION, "Message Bridge Not Launched")
+        AppLogger.instance().error("Message Bridge Not Launched")
         raise e
 
 

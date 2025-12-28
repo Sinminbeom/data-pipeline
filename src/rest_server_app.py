@@ -1,31 +1,34 @@
 import time
 
-from Log.cLogger import cLogger, E_LOG
+from logger.app_logger import AppLogger
 
-from App.AppObject import cMpAppFromCate
-from App.Category.cCateGory import cProcessCate, E_CATE
+from src.app.app_object import MultiProcessManagerAppFromCate
+from src.process_category.enum_category import E_CATE
+from src.process_category.process_category import ProcessCategory
 
-class cRestServer(cMpAppFromCate):
+
+class RestServer(MultiProcessManagerAppFromCate):
     def __init__(self, *_cate):
         super().__init__(E_CATE.REST_SERVER, *_cate)
 
-    def Init(self):
-        self.getMP().Start()
+    def init(self):
+        self.get_multi_process_manager().start()
 
-    def OnRun(self):
+    def on_run(self):
         time.sleep(0.1)
         pass
 
 
 def main():
     try:
-        cProcessCate.instance().RegisterRestServer()
+        AppLogger.set_config("../conf/logging.conf", "rest-server")
+        ProcessCategory.instance().register_rest_server()
 
-        app = cRestServer(E_CATE.REST_SERVER)
-        app.Init()
-        app.Run()
+        app = RestServer(E_CATE.REST_SERVER)
+        app.init()
+        app.run()
     except Exception as e:
-        cLogger.instance().Print(E_LOG.EXCEPTION, "Rest Server Not Launched")
+        AppLogger.instance().error("Rest Server Not Launched")
         raise e
 
 

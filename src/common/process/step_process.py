@@ -1,23 +1,22 @@
 from process.process import abProcess
 from abc import abstractmethod
 
-from src.common.state.state_component import StateComponent
 from src.common.state.state_container import StateContainer
+from src.common.state.state_machine import StateMachine
 
 
-# TODO: state_component 구현
 class StepProcess(abProcess):
     def __init__(self, app_name: str, process_name: str) -> None:
         super().__init__(process_name)
         self._app_name = app_name
 
-        self._state_component : StateComponent | None = None
+        self._state_machine: StateMachine | None = None
 
     def get_app_name(self) -> str:
         return self._app_name
 
-    def set_state_component(self, state_container: StateContainer, init_state_key: str) -> None:
-        self._state_component = StateComponent(self, state_container, init_state_key)
+    def set_state_machine(self, state_container: StateContainer, init_state_key: str) -> None:
+        self._state_machine = StateMachine(self, state_container, init_state_key)
 
     def action(self) -> None:
         self.on_init()
@@ -25,11 +24,10 @@ class StepProcess(abProcess):
 
         try:
             while self.is_running():
-                self.on_proc_once()
+                self.on_proc_every_frame()
 
-                if self._state_component is not None:
-                    self._state_component.on_proc_every_frame()
-                    self._state_component.on_change_state()
+                if self._state_machine is not None:
+                    self._state_machine.update()
 
         except Exception as e:
             self.stop()
