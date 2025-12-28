@@ -7,3 +7,7 @@ class ImdgListener(abListener):
     def __init__(self, _parent_process: abProcess):
         super().__init__(_parent_process)
         pass
+
+    def action(self) -> None:
+        pass
+

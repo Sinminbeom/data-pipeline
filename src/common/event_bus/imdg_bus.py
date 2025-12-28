@@ -14,7 +14,7 @@ class ImdgBus(EventBus):
         self._channel_name = _channel_name
         self.listener = ImdgListener(_parent_process)
         # TODO: redis 설정파일
-        self._imdg: Redis = redis.StrictRedis(host="", port=0)
+        self._imdg: Redis = redis.StrictRedis(host="localhost", port=6379)
         self.pubsub: PubSub | None = None
 
     def _init_pubsub(self):

@@ -8,4 +8,6 @@ class InnerQueueBus(EventBus):
     def __init__(self, _parent_process: abProcess) -> None:
         super().__init__(_parent_process)
         self.listener = InnerQueueListener(_parent_process)
+
+
     pass

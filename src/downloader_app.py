@@ -25,7 +25,7 @@ class Downloader(MultiProcessManagerAppFromCate):
 
 def main():
     try:
-        AppLogger.set_config("../conf/logging.conf", "data-pipeline")
+        AppLogger.set_config("../conf/logging.conf", "downloader")
         ProjectConfig.set_config("../conf/application_windows.conf")
         ProcessCategory.instance().register_downloader()
 
