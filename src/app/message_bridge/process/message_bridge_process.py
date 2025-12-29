@@ -17,6 +17,4 @@ class MessageBridgeProcess(BusProcess):
         print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
         pass
 
-    def action(self) -> None:
-        pass
 

@@ -1,5 +1,6 @@
 from process.process import abProcess
 from abc import abstractmethod
+import time
 
 from src.common.state.state_container import StateContainer
 from src.common.state.state_machine import StateMachine
@@ -29,9 +30,9 @@ class StepProcess(abProcess):
                 if self._state_machine is not None:
                     self._state_machine.update()
 
+                time.sleep(0.001)
         except Exception as e:
-            self.stop()
-            raise Exception(e)
+            raise e
         pass
 
     @abstractmethod

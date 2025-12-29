@@ -6,7 +6,7 @@ from src.utils.jsonpickle_util import JsonpickleUtil
 from src.utils.string_builder import StringBuilder
 from src.utils.time_string_fit import TimeStringFit, E_TIMEFORMAT
 
-
+# TODO: 정리할것
 class ProtocolWrapper:
     DELIM_CHAR = "|:|"
 
@@ -19,7 +19,6 @@ class ProtocolWrapper:
         RECEIVER = 5
         PROTOCOL_MESSAGE = 6
 
-    decode_handler = dict()
     sequence_id = dict()
 
     def __init__(self, message_id, protocol_message: Packet):
@@ -67,11 +66,12 @@ class ProtocolWrapper:
     def decode_protocol_wrapper(protocol_message_string):
         s = protocol_message_string.split(ProtocolWrapper.DELIM_CHAR)
 
-        protocol_id = s[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.PROTOCOL_ID]
+        communication_type = s[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.COMMUNICATION_TYPE]
         message_id = s[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.MESSAGE_ID]
-        protocol_message_json = s[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.PROTOCOL_MESSAGE]
+        protocol_id = s[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.PROTOCOL_ID]
+        message_direction = s[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.MESSAGE_DIRECTION]
+        sender = s[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.SENDER]
+        receiver = s[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.RECEIVER]
+        protocol_message = s[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.PROTOCOL_MESSAGE]
 
-        protocol_message_object = (
-            ProtocolWrapper.decode_handler[protocol_id](protocol_message_json)
-        )
-        return ProtocolWrapper(message_id, protocol_message_object)
+        return communication_type, protocol_id, message_id, message_direction, sender, receiver, protocol_message
