@@ -26,7 +26,7 @@ def main():
     try:
         AppLogger.set_config("../conf/logging.conf", "message-bridge")
         ProjectConfig.set_config("../conf/application_windows.conf")
-        ProcessCategory.instance().register_rest_server()
+        ProcessCategory.instance().register_message_bridge()
 
         app = MessageBridge(E_CATE.MESSAGE_BRIDGE)
         app.init()

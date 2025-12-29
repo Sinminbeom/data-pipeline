@@ -25,7 +25,7 @@ class IApp(ABC):
                 self.on_run()
                 pass
         except Exception as e:
-            print(e)
+            raise e
             pass
 
 class abApp(IApp):

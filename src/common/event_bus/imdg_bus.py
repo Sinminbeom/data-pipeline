@@ -12,14 +12,13 @@ class ImdgBus(EventBus):
     def __init__(self, _parent_process: abProcess, _channel_name: str) -> None:
         super().__init__(_parent_process)
         self._channel_name = _channel_name
-        self.listener = ImdgListener(_parent_process)
+
         # TODO: redis 설정파일
         self._imdg: Redis = redis.StrictRedis(host="localhost", port=6379)
-        self.pubsub: PubSub | None = None
 
-    def _init_pubsub(self):
-        self.pubsub = self._imdg.pubsub()
-        self.pubsub.subscribe(self._channel_name)
+        self._pubsub: PubSub = self._imdg.pubsub()
+        self._pubsub.subscribe(self._channel_name)
+        self.listener = ImdgListener(_parent_process, self._pubsub)
 
     @abstractmethod
     def send_message_imdg_queue(self, _message: str) -> None:
