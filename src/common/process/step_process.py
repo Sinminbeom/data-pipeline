@@ -1,9 +1,11 @@
+from logger.app_logger import AppLogger
 from process.process import abProcess
 from abc import abstractmethod
 import time
 
 from src.common.state.state_container import StateContainer
 from src.common.state.state_machine import StateMachine
+from src.config.project_config import ProjectConfig
 
 
 class StepProcess(abProcess):
@@ -13,6 +15,13 @@ class StepProcess(abProcess):
 
         self._state_machine: StateMachine | None = None
 
+        self.set_config()
+
+    @staticmethod
+    def set_config():
+        AppLogger.set_config("../conf/application_windows.conf", "socket-io-process")
+        ProjectConfig.set_config("../conf/application_windows.conf")
+
     def get_app_name(self) -> str:
         return self._app_name
 
@@ -20,6 +29,7 @@ class StepProcess(abProcess):
         self._state_machine = StateMachine(self, state_container, init_state_key)
 
     def action(self) -> None:
+        self.set_config()
         self.on_init()
         self.on_proc_once()
 

@@ -51,6 +51,6 @@ class ProjectConfig(AppConfig):
         self.bind_ip = self.get_config(
             ProjectConfig.E_CATE_TYPE.REST, ProjectConfig.E_CATE_ELE_REST.BIND_IP
         )
-        self.bind_port = self.get_config(
+        self.bind_port = int(self.get_config(
             ProjectConfig.E_CATE_TYPE.REST, ProjectConfig.E_CATE_ELE_REST.BIND_PORT
-        )
+        ))

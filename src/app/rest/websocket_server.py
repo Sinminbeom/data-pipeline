@@ -1,52 +1,57 @@
 import json
-from abc import abstractmethod
-from flask_socketio import SocketIO
-from flask import Flask
+from abc import ABC, abstractmethod
+
+import socketio
+from fastapi import FastAPI
+import uvicorn
 
 from src.common.process.bus_process import BusProcess
 from src.common.process.queue_control_process import QueueControlProcess
 from src.protocol.message.external.ui.playable_list import PDPlayableListReq
 from src.protocol.message.packet import E_PROTOCOL_MESSAGE_DIRECTION
 from src.protocol.protocol_meta import ProtocolMeta, E_PROTOCOL_ID
-from src.protocol.protocol_wrapper import ProtocolWrapper
 
 
-class abWebSocketServer:
+class abWebSocketServer(ABC):
+    """
+    FastAPI + python-socketio(ASGI)
 
-    def __init__(self, _parents_process: QueueControlProcess, _bind_ip='0.0.0.0', _port=9999):
-        print("11111111111111111111111111111111")
+    - FastAPI app: self.fastapi_app
+    - Socket.IO server: self.sio (AsyncServer)
+    - ASGI app (FastAPI + SocketIO 결합): self.app (ASGIApp)
+    """
+
+    def __init__(self, _parents_process: QueueControlProcess, _bind_ip: str = "0.0.0.0", _port: int = 9999):
         self.parents_process: QueueControlProcess = _parents_process
-        print("22222222222222222222222222222222222")
-
-        print("33333333333333333333333333333333333")
-        self.socket_io_app = Flask(__name__)
-        print("4444444444444444444444444444444444444")
-        self.socket_io_app.secret_key = "mysecret"
-
-        print("55555555555555555555555555555555")
 
         self.bindIP = _bind_ip
         self.port = _port
 
-        print("6666666666666666666666666666666666666")
-        self.socketIO = SocketIO(self.socket_io_app)
-        print("777777777777777777777777777777777")
+        self.fastapi_app = FastAPI()
+
+        # Socket.IO (ASGI)
+        self.sio = socketio.AsyncServer(
+            async_mode="asgi",
+            cors_allowed_origins="*",     # 필요 시 제한 권장
+            allow_upgrades=False,         # 기존 코드와 동일 옵션
+            logger=False,
+            engineio_logger=False,
+        )
+
+        # FastAPI + Socket.IO 결합 ASGI 앱
+        # socketio_path는 클라이언트의 연결 경로와 맞춰야 합니다(기본: /socket.io).
+        self.app = socketio.ASGIApp(self.sio, other_asgi_app=self.fastapi_app)
 
         self.init()
 
-    def init(self):
+    def init(self) -> None:
         self.on_init()
-        pass
 
-    def start(self):
-        # self.socketIO.run(self.socket_io_app, debug=False, port=9999, allow_unsafe_werkzeug=True)
-        self.socketIO.run(self.socket_io_app, debug=False, host=self.bindIP, port=self.port, allow_unsafe_werkzeug=True)
-
-    def __get_app(self):
-        return self.socket_io_app
+    def start(self) -> None:
+        uvicorn.run(self.app, host=self.bindIP, port=self.port, log_level="info")
 
     @abstractmethod
-    def on_init(self):
+    def on_init(self) -> None:
         pass
 
     def get_parent_process(self) -> QueueControlProcess:
@@ -54,38 +59,44 @@ class abWebSocketServer:
 
 
 class SocketIOServer(abWebSocketServer):
-
-    def __init__(self, _parents_process, _bind_ip, _bind_port):
-        abWebSocketServer.__init__(self, _parents_process, _bind_ip, _bind_port)
+    def __init__(self, _parents_process: QueueControlProcess, _bind_ip: str = "0.0.0.0", _bind_port: int = 9999):
+        super().__init__(_parents_process, _bind_ip, _bind_port)
 
     @staticmethod
-    def playable_list_request(process: BusProcess, protocol_wrapper: ProtocolWrapper, protocol_message: PDPlayableListReq):
+    def playable_list_request(process: BusProcess, protocol_message: PDPlayableListReq):
+        from typing import cast
         from src.process_category.enum_category import E_CATE
+
+        process = cast(BusProcess, process)
+        protocol_message = cast(PDPlayableListReq, protocol_message)
         print("Call Back  PlayableListRequest")
 
         sender = E_CATE.REST_SERVER
         receiver = E_CATE.MESSAGE_BRIDGE
 
         message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PLAYABLE_LIST_REQ)(
-            E_PROTOCOL_MESSAGE_DIRECTION.REQUEST, sender, receiver,
+            E_PROTOCOL_MESSAGE_DIRECTION.REQUEST,
+            sender,
+            receiver,
             protocol_message.vehicle_id,
             protocol_message.sensor_id_list,
-            protocol_message.start_time, protocol_message.end_time
+            protocol_message.start_time,
+            protocol_message.end_time,
         )
 
-        packet_message = ProtocolMeta.get_protocol_packet_message(message)
-        process.send_message_imdg(packet_message)
+        process.send_message_imdg(message.to_json_public())
 
-    def on_init(self):
-        super().on_init()
+    def on_init(self) -> None:
         self.get_parent_process().on_register_handler(ProtocolMeta.get_receive_handler_container())
 
-        @self.socket_io_app.route('/')
-        def hello_world():
-            return "Hello Project Home Page!!"
+        # HTTP Route (FastAPI)
+        # @self.fastapi_app.get("/")
+        # async def hello_world() -> str:
+        #     return "Hello Project Home Page!!"
 
-        @self.socketIO.on("message")
-        def request(message):
+        # Socket.IO event
+        @self.sio.on("message")
+        async def request(sid: str, message: str):
             print("message : " + message)
 
             parsed_dict = json.loads(message)
@@ -97,13 +108,8 @@ class SocketIOServer(abWebSocketServer):
                 print("Rest Server Recv Packet MissMatch!!")
                 return
 
-            message_object = ProtocolMeta.get_json_decoder(protocol_id)(message)
-
-            print(message_object)
-
-            protocol_wrapper = ProtocolWrapper.get_protocol_wrapper(message_object)
+            packet = ProtocolMeta.get_json_decoder(protocol_id)(message)
 
             recv_handler = ProtocolMeta.get_receive_handler(protocol_id, receiver_name)
-            recv_handler(self.get_parent_process(), protocol_wrapper, message_object)
 
-        pass
+            result = recv_handler(self.get_parent_process(), packet)

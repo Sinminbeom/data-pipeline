@@ -4,13 +4,14 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, Mapping, ClassVar
 
-from src.protocol.message.packet import E_PROTOCOL_MESSAGE_DIRECTION
-from src.protocol.protocol_wrapper import ProtocolWrapper
+from process.process import abProcess
+
+from src.protocol.message.packet import E_PROTOCOL_MESSAGE_DIRECTION, Packet
 
 ReceiverKey = Any
-FactoryFn = Callable[..., Any]
-DecoderFn = Callable[[Any], Any]
-HandlerFn = Callable[[Any, Any, Any], Any]
+FactoryFn = Callable[..., Packet]
+DecoderFn = Callable[[Any], Packet]
+HandlerFn = Callable[[abProcess, Packet], Any]
 
 
 class E_PROTOCOL_ID(Enum):
@@ -85,8 +86,8 @@ class ProtocolMeta:
                 ),
                 decoder=PDPlayableListReq.from_json,
                 receive_handlers={
-                    E_CATE.REST_SERVER: lambda process, protocol_wrapper, protocol_message: SocketIOServer.playable_list_request(
-                        process, protocol_wrapper, protocol_message
+                    E_CATE.REST_SERVER: lambda process, packet: SocketIOServer.playable_list_request(
+                        process, packet
                     ),
                 },
             ),
@@ -108,11 +109,11 @@ class ProtocolMeta:
                 ),
                 decoder=PlayableListReq.from_json,
                 receive_handlers={
-                    E_CATE.MESSAGE_BRIDGE: lambda process, protocol_wrapper, protocol_message: (
-                        MessageBridgeProcess.playable_list_request(process, protocol_wrapper, protocol_message)
+                    E_CATE.MESSAGE_BRIDGE: lambda process, packet: (
+                        MessageBridgeProcess.playable_list_request(process, packet)
                     ),
-                    E_CATE.DOWNLOADER: lambda process, protocol_wrapper, protocol_message: (
-                        DownloaderManager.playable_list_request(process, protocol_wrapper, protocol_message)
+                    E_CATE.DOWNLOADER: lambda process, packet: (
+                        DownloaderManager.playable_list_request(process, packet)
                     ),
                 },
             ),
@@ -132,8 +133,8 @@ class ProtocolMeta:
                 ),
                 decoder=InrPlayableListReq.from_json,
                 receive_handlers={
-                    E_CATE.DOWNLOADER: lambda process, protocol_wrapper, protocol_message: (
-                        DownloaderModule.playable_list_request(process, protocol_wrapper, protocol_message)
+                    E_CATE.DOWNLOADER: lambda process, packet: (
+                        DownloaderModule.playable_list_request(process, packet)
                     )
                 },
             ),
@@ -183,7 +184,3 @@ class ProtocolMeta:
         cls.initialize()
         pid = cls._to_enum(protocol_id)
         return cls.table[pid].decoder
-
-    @classmethod
-    def get_protocol_packet_message(cls, _protocol_message_object) -> str:
-        return ProtocolWrapper.get_protocol_wrapper(_protocol_message_object).get_protocol_packet_message()

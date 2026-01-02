@@ -4,11 +4,13 @@ version = "0.1.0"
 description = "data-pipeline"
 requires-python = ">=3.11"
 dependencies = [
-    "flask-socketio>=5.5.1",
+    "fastapi>=0.128.0",
     "jsonpickle>=4.1.1",
     "oncx-core",
+    "python-socketio[client]>=5.16.0",
     "redis>=7.1.0",
     "requests>=2.32.5",
+    "uvicorn>=0.40.0",
     "websocket-client>=1.9.0",
 ]
 
@@ -28,4 +30,4 @@ reportOptionalMemberAccess = "none"
 reportOptionalContextManager = "none"
 
 [tool.uv.sources]
-oncx-core = { path = "lib/oncx_core-1.14.1-py3-none-any.whl" }
+oncx-core = { git = "https://github.com/oncocross/oncx-core.git", rev = "1.15.1" }

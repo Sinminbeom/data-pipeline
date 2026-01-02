@@ -2,17 +2,15 @@ from process.process import abProcess
 
 from src.common.process.bus_process import BusProcess
 from src.protocol.message.packet import Packet
-from src.protocol.protocol_wrapper import ProtocolWrapper
 
 
 class DownloaderManager(BusProcess):
     def __init__(self, app_name, process_name):
         super().__init__(app_name, process_name)
-        print(app_name, process_name)
         pass
 
     @staticmethod
-    def playable_list_request(process: abProcess, wrapper: ProtocolWrapper, packet: Packet):
+    def playable_list_request(process: abProcess, packet: Packet):
         pass
 
     def action(self) -> None:
