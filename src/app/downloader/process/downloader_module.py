@@ -2,7 +2,6 @@ from process.process import abProcess
 
 from src.common.process.queue_control_process import QueueControlProcess
 from src.protocol.message.packet import Packet
-from src.protocol.protocol_wrapper import ProtocolWrapper
 
 
 class DownloaderModule(QueueControlProcess):
@@ -11,7 +10,7 @@ class DownloaderModule(QueueControlProcess):
         pass
 
     @staticmethod
-    def playable_list_request(process: abProcess, wrapper: ProtocolWrapper, packet: Packet):
+    def playable_list_request(process: abProcess, packet: Packet):
         pass
 
     def action(self) -> None:
