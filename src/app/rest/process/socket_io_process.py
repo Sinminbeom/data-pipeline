@@ -1,9 +1,9 @@
 from app.rest.websocket_server import SocketIOServer
-from common.process.bus_process import BusProcess
+from common.process.imdg_bus_process import ImdgBusProcess
 from config.project_config import ProjectConfig
 
 
-class SocketIOProcess(BusProcess):
+class SocketIOProcess(ImdgBusProcess):
     def __init__(self, app_name, process_name):
         super().__init__(app_name, process_name)
 
