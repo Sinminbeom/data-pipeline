@@ -1,7 +1,5 @@
 import time
 
-from python_library.logger.app_logger import AppLogger
-
 from app.app_object import MultiProcessManagerAppFromCate
 from process_category.enum_category import E_CATE
 from process_category.process_category import ProcessCategory
@@ -20,16 +18,11 @@ class RestServer(MultiProcessManagerAppFromCate):
 
 
 def main():
-    try:
-        AppLogger.set_config("./conf/logging.conf", "rest-server")
-        ProcessCategory.instance().register_rest_server()
+    ProcessCategory.instance().register_rest_server()
 
-        app = RestServer(E_CATE.REST_SERVER)
-        app.init()
-        app.run()
-    except Exception as e:
-        AppLogger.instance().error("Rest Server Not Launched")
-        raise e
+    app = RestServer(E_CATE.REST_SERVER)
+    app.init()
+    app.run()
 
 
 if __name__ == '__main__':

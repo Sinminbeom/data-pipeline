@@ -15,13 +15,8 @@ class StepProcess(QueueProcess):
 
         self._state_machine: StateMachine | None = None
 
-        self.set_config()
-
-    @staticmethod
-    def set_config():
-        # AppLogger.set_config("./conf/application_windows.conf", "socket-io-process")
-        # ProjectConfig.set_config("./conf/application_windows.conf")
-        AppLogger.set_config("./conf/application.conf", "socket-io-process")
+    def _set_config(self) -> None:
+        AppLogger.set_config("./conf/application.conf", self.name)
         ProjectConfig.set_config("./conf/application.conf")
 
     def get_app_name(self) -> str:
@@ -31,7 +26,7 @@ class StepProcess(QueueProcess):
         self._state_machine = StateMachine(self, state_container, init_state_key)
 
     def action(self) -> None:
-        self.set_config()
+        self._set_config()
         self.on_init()
         self.on_proc_once()
 
@@ -45,7 +40,6 @@ class StepProcess(QueueProcess):
                 time.sleep(0.001)
         except Exception as e:
             raise e
-        pass
 
     @abstractmethod
     def on_init(self):
@@ -58,4 +52,3 @@ class StepProcess(QueueProcess):
     @abstractmethod
     def on_proc_every_frame(self):
         raise NotImplementedError
-
