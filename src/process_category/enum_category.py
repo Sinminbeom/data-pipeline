@@ -1,10 +1,10 @@
-from define.enum import IENUM
+from python_library.define.enum import IENUM
 
-from src.app.downloader.process.downloader_manager import DownloaderManager
-from src.app.downloader.process.downloader_module import DownloaderModule
-from src.app.message_bridge.process.message_bridge_process import MessageBridgeProcess
-from src.app.rest.process.socket_io_process import SocketIOProcess
-from src.process_category.enum_sensor import E_LIDAR, E_CAMERA
+from app.downloader.process.downloader_manager import DownloaderManager
+from app.downloader.process.downloader_module import DownloaderModule
+from app.message_bridge.process.message_bridge_process import MessageBridgeProcess
+from app.rest.process.socket_io_process import SocketIOProcess
+from process_category.enum_sensor import E_LIDAR, E_CAMERA
 
 
 class E_CATE_META_ELE(IENUM):

@@ -1,10 +1,10 @@
 from enum import IntEnum
 
-from src.define.define import E_COMMUNICATION_TYPE
-from src.protocol.message.packet import Packet
-from src.utils.jsonpickle_util import JsonpickleUtil
-from src.utils.string_builder import StringBuilder
-from src.utils.time_string_fit import TimeStringFit, E_TIMEFORMAT
+from define.define import E_COMMUNICATION_TYPE
+from protocol.message.packet import Packet
+from utils.jsonpickle_util import JsonpickleUtil
+from utils.string_builder import StringBuilder
+from utils.time_string_fit import TimeStringFit, E_TIMEFORMAT
 
 # TODO: 정리할것
 class ProtocolWrapper:

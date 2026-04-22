@@ -19,4 +19,5 @@ def test_client():
 
     send_message_to_server("""{"protocol_id": "PD_100", "message_direction": 1, "sender": "UI", "receiver": "REST_SERVER", "vehicle_id": "e-100", "sensor_id_list": ["LIDAR"], "start_time": "20230602000000", "end_time": "20230602000115"}""")
 
-    sio.wait()
+    sio.sleep(2)
+    sio.disconnect()

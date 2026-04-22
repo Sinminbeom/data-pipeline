@@ -1,6 +1,6 @@
-from src.app.rest.websocket_server import SocketIOServer
-from src.common.process.bus_process import BusProcess
-from src.config.project_config import ProjectConfig
+from app.rest.websocket_server import SocketIOServer
+from common.process.bus_process import BusProcess
+from config.project_config import ProjectConfig
 
 
 class SocketIOProcess(BusProcess):

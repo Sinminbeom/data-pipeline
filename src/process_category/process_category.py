@@ -1,10 +1,10 @@
 from typing import List, Any, Tuple, Iterable
 
-from category.app_category import AppCategory
-from category.category_action import CategoryAction
-from category.category_group import CategoryGroup
+from python_library.category.app_category import AppCategory
+from python_library.category.category_action import CategoryAction
+from python_library.category.category_group import CategoryGroup
 
-from src.process_category.enum_category import E_CATE, E_CATE_META_ELE
+from process_category.enum_category import E_CATE, E_CATE_META_ELE
 
 
 class ProcessCategory(AppCategory):

@@ -5,11 +5,11 @@ import socketio
 from fastapi import FastAPI
 import uvicorn
 
-from src.common.process.bus_process import BusProcess
-from src.common.process.queue_control_process import QueueControlProcess
-from src.protocol.message.external.ui.playable_list import PDPlayableListReq
-from src.protocol.message.packet import E_PROTOCOL_MESSAGE_DIRECTION
-from src.protocol.protocol_meta import ProtocolMeta, E_PROTOCOL_ID
+from common.process.bus_process import BusProcess
+from common.process.queue_control_process import QueueControlProcess
+from protocol.message.external.ui.playable_list import PDPlayableListReq
+from protocol.message.packet import E_PROTOCOL_MESSAGE_DIRECTION
+from protocol.protocol_meta import ProtocolMeta, E_PROTOCOL_ID
 
 
 class abWebSocketServer(ABC):
@@ -65,7 +65,7 @@ class SocketIOServer(abWebSocketServer):
     @staticmethod
     def playable_list_request(process: BusProcess, protocol_message: PDPlayableListReq):
         from typing import cast
-        from src.process_category.enum_category import E_CATE
+        from process_category.enum_category import E_CATE
 
         process = cast(BusProcess, process)
         protocol_message = cast(PDPlayableListReq, protocol_message)
@@ -84,7 +84,7 @@ class SocketIOServer(abWebSocketServer):
             protocol_message.end_time,
         )
 
-        process.send_message_imdg(message.to_json_public())
+        process.send_message_imdg(message.to_json())
 
     def on_init(self) -> None:
         self.get_parent_process().on_register_handler(ProtocolMeta.get_receive_handler_container())

@@ -1,10 +1,10 @@
 import time
 
-from logger.app_logger import AppLogger
+from python_library.logger.app_logger import AppLogger
 
-from src.app.app_object import MultiProcessManagerAppFromCate
-from src.process_category.enum_category import E_CATE
-from src.process_category.process_category import ProcessCategory
+from app.app_object import MultiProcessManagerAppFromCate
+from process_category.enum_category import E_CATE
+from process_category.process_category import ProcessCategory
 
 
 class RestServer(MultiProcessManagerAppFromCate):
@@ -21,7 +21,7 @@ class RestServer(MultiProcessManagerAppFromCate):
 
 def main():
     try:
-        AppLogger.set_config("../conf/logging.conf", "rest-server")
+        AppLogger.set_config("./conf/logging.conf", "rest-server")
         ProcessCategory.instance().register_rest_server()
 
         app = RestServer(E_CATE.REST_SERVER)

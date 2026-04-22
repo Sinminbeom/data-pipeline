@@ -1,4 +1,4 @@
-from define.enum import IENUM
+from python_library.define.enum import IENUM
 
 
 class E_SENSOR_TYPE(IENUM):

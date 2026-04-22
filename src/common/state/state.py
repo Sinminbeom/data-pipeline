@@ -3,9 +3,9 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Generic, TYPE_CHECKING
 
-from src.common.state.types import TOwner, TKey
+from common.state.types import TOwner, TKey
 if TYPE_CHECKING:
-    from src.common.state.state_machine import StateMachine
+    from common.state.state_machine import StateMachine
 
 
 class abState(ABC, Generic[TOwner, TKey]):

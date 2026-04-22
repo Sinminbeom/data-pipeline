@@ -1,7 +1,7 @@
 from collections.abc import Mapping
 from typing import Iterator, Dict
 
-from src.common.state.state import TKey, abState, TOwner
+from common.state.state import TKey, abState, TOwner
 
 
 class StateContainer(Mapping[TKey, abState[TOwner, TKey]]):

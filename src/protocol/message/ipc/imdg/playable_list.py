@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from src.define.define import E_COMMUNICATION_TYPE
-from src.protocol.message.ipc.ipc import IpcRequestPacket
-from src.protocol.message.packet import Header, E_PROTOCOL_MESSAGE_DIRECTION
+from define.define import E_COMMUNICATION_TYPE
+from protocol.message.ipc.ipc import IpcRequestPacket
+from protocol.message.packet import Header, E_PROTOCOL_MESSAGE_DIRECTION
 
 
 @dataclass
