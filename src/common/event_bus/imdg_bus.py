@@ -2,10 +2,11 @@ import redis
 from redis.client import Redis, PubSub
 from abc import abstractmethod
 
-from process.process import abProcess
+from python_library.process.process import abProcess
 
-from src.common.event_bus.event_bus import EventBus
-from src.common.event_bus.listener.imdg_listener import ImdgListener
+from common.event_bus.event_bus import EventBus
+from common.event_bus.listener.imdg_listener import ImdgListener
+from config.project_config import ProjectConfig
 
 
 class ImdgBus(EventBus):
@@ -13,8 +14,8 @@ class ImdgBus(EventBus):
         super().__init__(_parent_process)
         self._channel_name = _channel_name
 
-        # TODO: redis 설정파일
-        self._imdg: Redis = redis.StrictRedis(host="localhost", port=6379)
+        config = ProjectConfig.instance()
+        self._imdg: Redis = redis.StrictRedis(host=config.server_ip, port=int(config.server_port))
 
         self._pubsub: PubSub = self._imdg.pubsub()
         self._pubsub.subscribe(self._channel_name)

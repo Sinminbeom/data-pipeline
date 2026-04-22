@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Type
 
-from src.protocol.message.packet import Packet, T
+from protocol.message.packet import Packet, T
 
 
 @dataclass

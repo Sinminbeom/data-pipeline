@@ -1,7 +1,7 @@
-from process.process import abProcess
+from python_library.process.process import abProcess
 
-from src.common.event_bus.event_bus import EventBus
-from src.common.event_bus.listener.inner_queue_listener import InnerQueueListener
+from common.event_bus.event_bus import EventBus
+from common.event_bus.listener.inner_queue_listener import InnerQueueListener
 
 
 class InnerQueueBus(EventBus):

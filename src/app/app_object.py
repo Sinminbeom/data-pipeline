@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 
-from process.multi_process_manager import MultiProcessManager
-from process.process import abProcess
+from python_library.process.multi_process_manager import MultiProcessManager
+from python_library.process.process import abProcess
 
-from src.process_category.enum_category import E_CATE_META_ELE
-from src.process_category.process_category import ProcessCategory
+from process_category.enum_category import E_CATE_META_ELE
+from process_category.process_category import ProcessCategory
 
 
 class IApp(ABC):

@@ -1,7 +1,7 @@
 from abc import abstractmethod
 
-from process.process import abProcess
-from thread.thread import abThreading
+from python_library.process.process import abProcess
+from python_library.thread.thread import abThreading
 
 
 class abListener(abThreading):

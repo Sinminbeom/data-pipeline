@@ -1,8 +1,8 @@
 from typing import Generic, Optional
 
-from src.common.state.change_result import ChangeResult
-from src.common.state.state import TOwner, TKey, abState
-from src.common.state.state_container import StateContainer
+from common.state.change_result import ChangeResult
+from common.state.state import TOwner, TKey, abState
+from common.state.state_container import StateContainer
 
 
 class StateMachine(Generic[TOwner, TKey]):

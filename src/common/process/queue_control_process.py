@@ -1,8 +1,8 @@
 from typing import Mapping
 
-from src.common.event_bus.inner_queue_bus import InnerQueueBus
-from src.common.process.step_process import StepProcess
-from src.protocol.protocol_meta import E_PROTOCOL_ID, ReceiverKey, HandlerFn
+from common.event_bus.inner_queue_bus import InnerQueueBus
+from common.process.step_process import StepProcess
+from protocol.protocol_meta import E_PROTOCOL_ID, ReceiverKey, HandlerFn
 
 
 class QueueControlProcess(StepProcess):

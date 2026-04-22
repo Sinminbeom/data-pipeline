@@ -1,6 +1,6 @@
-from process.process import abProcess
+from python_library.process.process import abProcess
 
-from src.common.event_bus.listener.listener import abListener
+from common.event_bus.listener.listener import abListener
 
 
 class EventBus:

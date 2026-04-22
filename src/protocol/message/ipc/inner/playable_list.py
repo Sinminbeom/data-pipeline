@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
-from src.define.define import E_COMMUNICATION_TYPE
-from src.protocol.message.ipc.ipc import IpcRequestPacket, IpcResponsePacket
-from src.protocol.message.packet import Header
+from define.define import E_COMMUNICATION_TYPE
+from protocol.message.ipc.ipc import IpcRequestPacket, IpcResponsePacket
+from protocol.message.packet import Header
 
 
 # -----------------------------

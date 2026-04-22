@@ -4,9 +4,9 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, Mapping, ClassVar
 
-from process.process import abProcess
+from python_library.process.process import abProcess
 
-from src.protocol.message.packet import E_PROTOCOL_MESSAGE_DIRECTION, Packet
+from protocol.message.packet import E_PROTOCOL_MESSAGE_DIRECTION, Packet
 
 ReceiverKey = Any
 FactoryFn = Callable[..., Packet]
@@ -62,14 +62,14 @@ class ProtocolMeta:
 
     @classmethod
     def _register_protocols(cls) -> None:
-        from src.process_category.enum_category import E_CATE
-        from src.app.rest.websocket_server import SocketIOServer
-        from src.app.downloader.process.downloader_manager import DownloaderManager
-        from src.app.downloader.process.downloader_module import DownloaderModule
-        from src.app.message_bridge.process.message_bridge_process import MessageBridgeProcess
-        from src.protocol.message.external.ui.playable_list import PDPlayableListReq
-        from src.protocol.message.ipc.imdg.playable_list import PlayableListReq
-        from src.protocol.message.ipc.inner.playable_list import InrPlayableListReq
+        from process_category.enum_category import E_CATE
+        from app.rest.websocket_server import SocketIOServer
+        from app.downloader.process.downloader_manager import DownloaderManager
+        from app.downloader.process.downloader_module import DownloaderModule
+        from app.message_bridge.process.message_bridge_process import MessageBridgeProcess
+        from protocol.message.external.ui.playable_list import PDPlayableListReq
+        from protocol.message.ipc.imdg.playable_list import PlayableListReq
+        from protocol.message.ipc.inner.playable_list import InrPlayableListReq
 
         # PD
         cls._register(

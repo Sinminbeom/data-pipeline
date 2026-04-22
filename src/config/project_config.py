@@ -1,5 +1,5 @@
-from configure.app_config import AppConfig
-from define.enum import IENUM
+from python_library.configure.app_config import AppConfig
+from python_library.define.enum import IENUM
 
 
 class ProjectConfig(AppConfig):
@@ -7,6 +7,7 @@ class ProjectConfig(AppConfig):
         COMMON = "COOMON"
         IMDG = "IMDG"
         REST = "REST"
+        STREAM = "STREAM"
 
     class E_CATE_ELE_COMMON(IENUM):
         PROJECT_NAME = "ProjectName"
@@ -23,6 +24,11 @@ class ProjectConfig(AppConfig):
     class E_CATE_ELE_REST(IENUM):
         BIND_IP = "BindIp"
         BIND_PORT = "BindPort"
+        pass
+
+    class E_CATE_ELE_STREAM(IENUM):
+        STREAM_NAME = "StreamName"
+        GROUP_NAME = "GroupName"
         pass
 
     def __init__(self) -> None:
@@ -54,3 +60,10 @@ class ProjectConfig(AppConfig):
         self.bind_port = int(self.get_config(
             ProjectConfig.E_CATE_TYPE.REST, ProjectConfig.E_CATE_ELE_REST.BIND_PORT
         ))
+
+        self.stream_name = self.get_config(
+            ProjectConfig.E_CATE_TYPE.STREAM, ProjectConfig.E_CATE_ELE_STREAM.STREAM_NAME
+        )
+        self.stream_group_name = self.get_config(
+            ProjectConfig.E_CATE_TYPE.STREAM, ProjectConfig.E_CATE_ELE_STREAM.GROUP_NAME
+        )

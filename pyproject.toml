@@ -6,7 +6,7 @@ requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.128.0",
     "jsonpickle>=4.1.1",
-    "oncx-core",
+    "python-library",
     "python-socketio[client]>=5.16.0",
     "redis>=7.1.0",
     "requests>=2.32.5",
@@ -29,5 +29,12 @@ reportOptionalSubscript = "none"
 reportOptionalMemberAccess = "none"
 reportOptionalContextManager = "none"
 
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
 [tool.uv.sources]
-oncx-core = { git = "https://github.com/oncocross/oncx-core.git", rev = "1.15.1" }
+python-library = { path = "libs/python_library-2.2.8-py3-none-any.whl" }

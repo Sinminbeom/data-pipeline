@@ -1,11 +1,11 @@
 import time
 import json
 
-from process.process import abProcess
+from python_library.process.process import abProcess
 from redis.client import PubSub
 
-from src.common.event_bus.listener.listener import abListener
-from src.protocol.protocol_meta import ProtocolMeta
+from common.event_bus.listener.listener import abListener
+from protocol.protocol_meta import ProtocolMeta
 
 
 class ImdgListener(abListener):
@@ -22,7 +22,8 @@ class ImdgListener(abListener):
                 protocol_id = json_data['header']['protocol_id']
                 receiver = json_data['header']['receiver']
 
-                ProtocolMeta.get_receive_handler(protocol_id, receiver)(self._parent_process, message_data)
+                packet = ProtocolMeta.get_json_decoder(protocol_id)(message_data)
+                ProtocolMeta.get_receive_handler(protocol_id, receiver)(self._parent_process, packet)
 
         time.sleep(0.001)
         pass

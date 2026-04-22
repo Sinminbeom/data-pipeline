@@ -1,7 +1,7 @@
-from process.process import abProcess
+from python_library.process.process import abProcess
 
-from src.common.process.queue_control_process import QueueControlProcess
-from src.protocol.message.packet import Packet
+from common.process.queue_control_process import QueueControlProcess
+from protocol.message.packet import Packet
 
 
 class DownloaderModule(QueueControlProcess):

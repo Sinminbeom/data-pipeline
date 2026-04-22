@@ -5,7 +5,7 @@ from dataclasses import asdict, is_dataclass, dataclass
 from enum import Enum, IntEnum
 from typing import Any, Mapping, Type, TypeVar
 
-from src.define.define import E_COMMUNICATION_TYPE
+from define.define import E_COMMUNICATION_TYPE
 
 T = TypeVar("T", bound="Packet")
 
@@ -64,7 +64,7 @@ class Packet:
         """Best-effort internal encoding using JsonpickleUtil, fallback to json."""
         try:
             # 프로젝트 내 공용 유틸이 있다면 최우선 사용
-            from src.utils.jsonpickle_util import JsonpickleUtil  # type: ignore
+            from utils.jsonpickle_util import JsonpickleUtil  # type: ignore
 
             return JsonpickleUtil.encode_internal(obj)
         except Exception:
@@ -77,7 +77,7 @@ class Packet:
     def _encode_external(obj: Any) -> str:
         """Best-effort external encoding using JsonpickleUtil, fallback to json."""
         try:
-            from src.utils.jsonpickle_util import JsonpickleUtil  # type: ignore
+            from utils.jsonpickle_util import JsonpickleUtil  # type: ignore
 
             return JsonpickleUtil.encode_external(obj)
         except Exception:
@@ -90,7 +90,7 @@ class Packet:
     def _decode_internal(expected_type: Type[T], json_data: str) -> T:
         """Best-effort internal decoding using JsonpickleUtil, fallback to kwargs."""
         try:
-            from src.utils.jsonpickle_util import JsonpickleUtil  # type: ignore
+            from utils.jsonpickle_util import JsonpickleUtil  # type: ignore
 
             return JsonpickleUtil.decode_internal(json_data, expected_type=expected_type)
         except Exception:

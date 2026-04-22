@@ -1,14 +1,14 @@
-from logger.app_logger import AppLogger
-from process.process import abProcess
+from python_library.logger.app_logger import AppLogger
+from python_library.process.process import QueueProcess
 from abc import abstractmethod
 import time
 
-from src.common.state.state_container import StateContainer
-from src.common.state.state_machine import StateMachine
-from src.config.project_config import ProjectConfig
+from common.state.state_container import StateContainer
+from common.state.state_machine import StateMachine
+from config.project_config import ProjectConfig
 
 
-class StepProcess(abProcess):
+class StepProcess(QueueProcess):
     def __init__(self, app_name: str, process_name: str) -> None:
         super().__init__(process_name)
         self._app_name = app_name
@@ -19,8 +19,10 @@ class StepProcess(abProcess):
 
     @staticmethod
     def set_config():
-        AppLogger.set_config("../conf/application_windows.conf", "socket-io-process")
-        ProjectConfig.set_config("../conf/application_windows.conf")
+        # AppLogger.set_config("./conf/application_windows.conf", "socket-io-process")
+        # ProjectConfig.set_config("./conf/application_windows.conf")
+        AppLogger.set_config("./conf/application.conf", "socket-io-process")
+        ProjectConfig.set_config("./conf/application.conf")
 
     def get_app_name(self) -> str:
         return self._app_name

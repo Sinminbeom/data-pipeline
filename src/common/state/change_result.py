@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Generic, Optional
 
-from src.common.state.types import TKey
+from common.state.types import TKey
 
 
 @dataclass(frozen=True)

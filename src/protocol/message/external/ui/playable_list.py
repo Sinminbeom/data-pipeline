@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 
-from src.define.define import E_COMMUNICATION_TYPE
-from src.protocol.message.external.external import ExternalPacket
-from src.protocol.message.external.ui.section_element import PDSectionElement
-from src.protocol.message.packet import Header, E_PROTOCOL_MESSAGE_DIRECTION
+from define.define import E_COMMUNICATION_TYPE
+from protocol.message.external.external import ExternalPacket
+from protocol.message.external.ui.section_element import PDSectionElement
+from protocol.message.packet import Header, E_PROTOCOL_MESSAGE_DIRECTION
 
 
 @dataclass
