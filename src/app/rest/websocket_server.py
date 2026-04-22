@@ -5,7 +5,7 @@ import socketio
 from fastapi import FastAPI
 import uvicorn
 
-from common.process.bus_process import BusProcess
+from common.process.imdg_bus_process import ImdgBusProcess
 from common.process.queue_control_process import QueueControlProcess
 from protocol.message.external.ui.playable_list import PDPlayableListReq
 from protocol.message.packet import E_PROTOCOL_MESSAGE_DIRECTION
@@ -64,11 +64,11 @@ class SocketIOServer(abWebSocketServer):
         super().__init__(_parents_process, _bind_ip, _bind_port)
 
     @staticmethod
-    def playable_list_request(process: BusProcess, protocol_message: PDPlayableListReq):
+    def playable_list_request(process: ImdgBusProcess, protocol_message: PDPlayableListReq):
         from typing import cast
         from process_category.enum_category import E_CATE
 
-        process = cast(BusProcess, process)
+        process = cast(ImdgBusProcess, process)
         protocol_message = cast(PDPlayableListReq, protocol_message)
         print("Call Back  PlayableListRequest")
 

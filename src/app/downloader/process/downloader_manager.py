@@ -1,11 +1,11 @@
 from python_library.process.process import abProcess
 
 from common.event_bus.listener.stream_listener import StreamListener
-from common.process.bus_process import BusProcess
+from common.process.imdg_bus_process import ImdgBusProcess
 from protocol.message.packet import Packet
 
 
-class DownloaderManager(BusProcess):
+class DownloaderManager(ImdgBusProcess):
     def __init__(self, app_name, process_name):
         super().__init__(app_name, process_name)
         self._stream_listener: StreamListener | None = None
