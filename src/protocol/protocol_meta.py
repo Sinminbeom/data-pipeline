@@ -165,7 +165,9 @@ class ProtocolMeta:
     def get_receive_handler(cls, protocol_id: E_PROTOCOL_ID | str, receiver: ReceiverKey) -> HandlerFn:
         cls.initialize()
         pid = cls._to_enum(protocol_id)
-        return cls.table[pid].receive_handlers[receiver]
+        from protocol.protocol_owner import ProtocolOwner
+        app_name = ProtocolOwner.get_app_name(receiver) if isinstance(receiver, str) else receiver
+        return cls.table[pid].receive_handlers[app_name]
 
     @classmethod
     def get_inr_group_receive_handler(cls, protocol_id: E_PROTOCOL_ID | str, receiver: ReceiverKey) -> HandlerFn:

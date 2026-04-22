@@ -10,6 +10,7 @@ from common.process.queue_control_process import QueueControlProcess
 from protocol.message.external.ui.playable_list import PDPlayableListReq
 from protocol.message.packet import E_PROTOCOL_MESSAGE_DIRECTION
 from protocol.protocol_meta import ProtocolMeta, E_PROTOCOL_ID
+from protocol.protocol_owner import ProtocolOwner
 
 
 class abWebSocketServer(ABC):
@@ -71,8 +72,8 @@ class SocketIOServer(abWebSocketServer):
         protocol_message = cast(PDPlayableListReq, protocol_message)
         print("Call Back  PlayableListRequest")
 
-        sender = E_CATE.REST_SERVER
-        receiver = E_CATE.MESSAGE_BRIDGE
+        sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
+        receiver = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
 
         message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PLAYABLE_LIST_REQ)(
             E_PROTOCOL_MESSAGE_DIRECTION.REQUEST,

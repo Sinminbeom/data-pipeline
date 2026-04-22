@@ -20,11 +20,14 @@ class MessageBridgeProcess(BusProcess, IStreamBusProcess):
     @staticmethod
     def playable_list_request(process: IStreamBusProcess, packet: Packet):
         from process_category.enum_category import E_CATE
+        from protocol.protocol_owner import ProtocolOwner
+        sender = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
+        receiver = ProtocolOwner.build(E_CATE.DOWNLOADER, E_CATE.E_DOWNLOADER.E_COMMON.DOWNLOAD_MANAGER)
         factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PLAYABLE_LIST_REQ)
         fwd_packet = factory(
             E_PROTOCOL_MESSAGE_DIRECTION.REQUEST.value,
-            E_CATE.MESSAGE_BRIDGE,
-            E_CATE.DOWNLOADER,
+            sender,
+            receiver,
             packet.vehicle_id,
             packet.sensor_id_list,
             packet.start_time,
