@@ -1,7 +1,7 @@
 from common.event_bus.stream_bus import StreamBus
 from common.process.imdg_bus_process import ImdgBusProcess
 from common.process.interfaces import IBusProcess
-from protocol.message.packet import E_PROTOCOL_MESSAGE_DIRECTION, Packet
+from protocol.message.packet import E_PROTOCOL_MESSAGE_DIRECTION, IPacket
 from protocol.protocol_meta import E_PROTOCOL_ID, ProtocolMeta
 
 
@@ -18,7 +18,7 @@ class MessageBridgeProcess(ImdgBusProcess):
         self._stream_bus.publish(message)
 
     @staticmethod
-    def playable_list_request(process: IBusProcess, packet: Packet):
+    def playable_list_request(process: IBusProcess, packet: IPacket):
         from process_category.enum_category import E_CATE
         from protocol.protocol_owner import ProtocolOwner
         sender = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)

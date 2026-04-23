@@ -1,7 +1,7 @@
 from python_library.process.process import abProcess
 
 from common.process.queue_control_process import QueueControlProcess
-from protocol.message.packet import Packet
+from protocol.message.packet import IPacket
 
 
 class DownloaderModule(QueueControlProcess):
@@ -10,7 +10,7 @@ class DownloaderModule(QueueControlProcess):
         pass
 
     @staticmethod
-    def playable_list_request(process: abProcess, packet: Packet):
+    def playable_list_request(process: abProcess, packet: IPacket):
         pass
 
     def action(self) -> None:

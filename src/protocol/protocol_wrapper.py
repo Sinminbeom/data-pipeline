@@ -1,7 +1,7 @@
 from enum import IntEnum
 
 from define.define import E_COMMUNICATION_TYPE
-from protocol.message.packet import Packet
+from protocol.message.packet import IPacket
 from utils.jsonpickle_util import JsonpickleUtil
 from utils.string_builder import StringBuilder
 from utils.time_string_fit import TimeStringFit, E_TIMEFORMAT
@@ -21,7 +21,7 @@ class ProtocolWrapper:
 
     sequence_id = dict()
 
-    def __init__(self, message_id, protocol_message: Packet):
+    def __init__(self, message_id, protocol_message: IPacket):
         try:
             self.communication_type = protocol_message.header.communication_type
         except Exception as e:

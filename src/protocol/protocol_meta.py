@@ -6,12 +6,12 @@ from typing import Any, Callable, Dict, Mapping, ClassVar
 
 from python_library.process.process import abProcess
 
-from protocol.message.packet import E_PROTOCOL_MESSAGE_DIRECTION, Packet
+from protocol.message.packet import E_PROTOCOL_MESSAGE_DIRECTION, IPacket
 
 ReceiverKey = Any
-FactoryFn = Callable[..., Packet]
-DecoderFn = Callable[[Any], Packet]
-HandlerFn = Callable[[abProcess, Packet], Any]
+FactoryFn = Callable[..., IPacket]
+DecoderFn = Callable[[Any], IPacket]
+HandlerFn = Callable[[abProcess, IPacket], Any]
 
 
 class E_PROTOCOL_ID(Enum):

@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import json
+from abc import ABC, abstractmethod
 from dataclasses import asdict, is_dataclass, dataclass
 from enum import Enum, IntEnum
 from typing import Any, Mapping, Type, TypeVar
 
 from define.define import E_COMMUNICATION_TYPE
 
-T = TypeVar("T", bound="Packet")
+T = TypeVar("T", bound="abPacket")
 
 
 class PacketCodecError(ValueError):
@@ -41,22 +42,23 @@ class Header:
     receiver: str
 
 
-@dataclass
-class Packet:
+class IPacket(ABC):
     header: Header
 
-    # ---- interface ----
-    def to_json(self) -> str:
-        """Internal serialization (typically used within your system)."""
-        raise NotImplementedError
+    @abstractmethod
+    def to_json(self) -> str: ...
 
-    def to_json_public(self) -> str:
-        """External/wire serialization (typically used for integration)."""
-        raise NotImplementedError
+    @abstractmethod
+    def to_json_public(self) -> str: ...
 
     @classmethod
-    def from_json(cls: Type[T], json_data: str) -> T:
-        raise NotImplementedError
+    @abstractmethod
+    def from_json(cls: Type[T], json_data: str) -> T: ...
+
+
+@dataclass
+class abPacket(IPacket):
+    header: Header
 
     # ---- shared helpers ----
     @staticmethod
