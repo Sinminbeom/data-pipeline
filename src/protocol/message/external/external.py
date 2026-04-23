@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import Type
 
-from protocol.message.packet import Packet, T
+from protocol.message.packet import abPacket, T
 
 
 @dataclass
-class ExternalPacket(Packet):
+class ExternalPacket(abPacket):
 
     def to_json(self) -> str:
         # 내부 저장/디버깅/로그 목적

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Type
 
-from protocol.message.packet import Packet, T
+from protocol.message.packet import abPacket, T
 
 
 @dataclass(frozen=True)
@@ -12,7 +12,7 @@ class Response:
 
 
 @dataclass
-class IpcPacket(Packet):
+class IpcPacket(abPacket):
 
     def to_json(self) -> str:
         return self._encode_internal(self)

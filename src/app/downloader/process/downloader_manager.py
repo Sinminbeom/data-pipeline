@@ -2,7 +2,7 @@ from python_library.process.process import abProcess
 
 from common.event_bus.listener.stream_listener import StreamListener
 from common.process.imdg_bus_process import ImdgBusProcess
-from protocol.message.packet import Packet
+from protocol.message.packet import IPacket
 
 
 class DownloaderManager(ImdgBusProcess):
@@ -16,7 +16,7 @@ class DownloaderManager(ImdgBusProcess):
         self._stream_listener.start()
 
     @staticmethod
-    def playable_list_request(process: abProcess, packet: Packet):
+    def playable_list_request(process: abProcess, packet: IPacket):
         pass
 
     def action(self) -> None:
