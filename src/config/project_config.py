@@ -3,6 +3,8 @@ from python_library.define.enum import IENUM
 
 
 class ProjectConfig(AppConfig):
+    DEFAULT_CONFIG_PATH = "./conf/application.conf"
+
     class E_CATE_TYPE(IENUM):
         COMMON = "COOMON"
         IMDG = "IMDG"

@@ -16,8 +16,8 @@ class StepProcess(QueueProcess):
         self._state_machine: StateMachine | None = None
 
     def _set_config(self) -> None:
-        AppLogger.set_config("./conf/application.conf", self.name)
-        ProjectConfig.set_config("./conf/application.conf")
+        AppLogger.set_config(ProjectConfig.DEFAULT_CONFIG_PATH, self.name)
+        ProjectConfig.set_config(ProjectConfig.DEFAULT_CONFIG_PATH)
 
     def get_app_name(self) -> str:
         return self._app_name

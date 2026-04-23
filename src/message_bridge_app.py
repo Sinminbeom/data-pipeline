@@ -3,6 +3,7 @@ import time
 from app.app_object import MultiProcessManagerAppFromCate
 from process_category.enum_category import E_CATE
 from process_category.process_category import ProcessCategory
+from config.project_config import ProjectConfig
 
 
 class MessageBridge(MultiProcessManagerAppFromCate):
@@ -19,6 +20,8 @@ class MessageBridge(MultiProcessManagerAppFromCate):
 
 
 def main():
+    ProjectConfig.set_config(ProjectConfig.DEFAULT_CONFIG_PATH)
+
     ProcessCategory.instance().register_message_bridge()
 
     app = MessageBridge(E_CATE.MESSAGE_BRIDGE)

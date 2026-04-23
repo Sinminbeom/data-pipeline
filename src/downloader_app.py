@@ -3,6 +3,7 @@ import time
 from app.app_object import MultiProcessManagerAppFromCate
 from process_category.enum_category import E_CATE
 from process_category.process_category import ProcessCategory
+from config.project_config import ProjectConfig
 
 
 class Downloader(MultiProcessManagerAppFromCate):
@@ -19,6 +20,8 @@ class Downloader(MultiProcessManagerAppFromCate):
 
 
 def main():
+    ProjectConfig.set_config(ProjectConfig.DEFAULT_CONFIG_PATH)
+
     ProcessCategory.instance().register_downloader()
 
     app = Downloader(E_CATE.DOWNLOADER)
