@@ -5,7 +5,7 @@ import socketio
 from fastapi import FastAPI
 import uvicorn
 
-from common.process.imdg_bus_process import ImdgBusProcess
+from common.process.imdg_bus_process import IImdgBusProcess
 from common.process.queue_control_process import QueueControlProcess
 from protocol.message.external.ui.playable_list import PDPlayableListReq
 from protocol.message.packet import E_PROTOCOL_MESSAGE_DIRECTION
@@ -64,13 +64,9 @@ class SocketIOServer(abWebSocketServer):
         super().__init__(_parents_process, _bind_ip, _bind_port)
 
     @staticmethod
-    def playable_list_request(process: ImdgBusProcess, protocol_message: PDPlayableListReq):
-        from typing import cast
+    def playable_list_request(process: IImdgBusProcess, protocol_message: PDPlayableListReq):
         from process_category.enum_category import E_CATE
 
-        process = cast(ImdgBusProcess, process)
-        protocol_message = cast(PDPlayableListReq, protocol_message)
-        print("Call Back  PlayableListRequest")
 
         sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
         receiver = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
@@ -90,10 +86,6 @@ class SocketIOServer(abWebSocketServer):
     def on_init(self) -> None:
         self.get_parent_process().on_register_handler(ProtocolMeta.get_receive_handler_container())
 
-        # HTTP Route (FastAPI)
-        # @self.fastapi_app.get("/")
-        # async def hello_world() -> str:
-        #     return "Hello Project Home Page!!"
 
         # Socket.IO event
         @self.sio.on("message")
