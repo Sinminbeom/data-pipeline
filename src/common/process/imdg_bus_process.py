@@ -1,10 +1,18 @@
+from abc import abstractmethod
+
 from common.event_bus.imdg_bus import ImdgBus
-from common.process.bus_process import BusProcess
+from common.process.bus_process import BusProcess, IBusProcess
 from config.project_config import ProjectConfig
 from define.define import E_COMMUNICATION_TYPE
 
 
-class ImdgBusProcess(BusProcess):
+class IImdgBusProcess(IBusProcess):
+
+    @abstractmethod
+    def send_message_imdg(self, message: str) -> None: ...
+
+
+class ImdgBusProcess(BusProcess, IImdgBusProcess):
     def __init__(self, app_name: str, process_name: str) -> None:
         super().__init__(app_name, process_name)
         self.channel_name = ProjectConfig.instance().channel_name
