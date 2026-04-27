@@ -4,12 +4,25 @@ from common.event_bus.imdg_bus import ImdgBus
 from common.process.bus_process import BusProcess, IBusProcess
 from config.project_config import ProjectConfig
 from define.define import E_COMMUNICATION_TYPE
+from protocol.message.message import ResponseInfo
 
 
 class IImdgBusProcess(IBusProcess):
 
     @abstractmethod
     def send_message_imdg(self, message: str) -> None: ...
+
+    @abstractmethod
+    def send_message_req_imdg(self, protocol_id, receiver: str, *args) -> None: ...
+
+    @abstractmethod
+    def send_message_rep_imdg(
+        self,
+        protocol_id,
+        receiver: str,
+        *args,
+        response: ResponseInfo,
+    ) -> None: ...
 
 
 class ImdgBusProcess(BusProcess, IImdgBusProcess):
@@ -29,3 +42,15 @@ class ImdgBusProcess(BusProcess, IImdgBusProcess):
 
     def send_message_imdg(self, _message: str) -> None:
         self._imdg_bus.send_message_imdg_queue(_message)
+
+    def send_message_req_imdg(self, protocol_id, receiver: str, *args) -> None:
+        self._imdg_bus.send_message_req_imdg_queue(protocol_id, receiver, *args)
+
+    def send_message_rep_imdg(
+        self,
+        protocol_id,
+        receiver: str,
+        *args,
+        response: ResponseInfo,
+    ) -> None:
+        self._imdg_bus.send_message_rep_imdg_queue(protocol_id, receiver, *args, response=response)

@@ -1,7 +1,9 @@
+from abc import abstractmethod
+from enum import Enum
+import time
+
 from python_library.logger.app_logger import AppLogger
 from python_library.process.process import QueueProcess
-from abc import abstractmethod
-import time
 
 from common.state.state_container import StateContainer
 from common.state.state_machine import StateMachine
@@ -22,7 +24,11 @@ class StepProcess(QueueProcess):
     def get_app_name(self) -> str:
         return self._app_name
 
-    def set_state_machine(self, state_container: StateContainer, init_state_key: str) -> None:
+    def set_state_machine(
+        self,
+        state_container: StateContainer,
+        init_state_key: Enum,
+    ) -> None:
         self._state_machine = StateMachine(self, state_container, init_state_key)
 
     def action(self) -> None:
