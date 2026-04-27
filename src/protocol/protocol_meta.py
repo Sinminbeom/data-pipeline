@@ -7,11 +7,12 @@ from typing import Any, Callable, Dict, Mapping, ClassVar
 from python_library.process.process import abProcess
 
 from protocol.message.packet import IPacket
+from protocol.protocol_wrapper import ProtocolWrapper
 
 ReceiverKey = Any
 FactoryFn = Callable[..., IPacket]
 DecoderFn = Callable[[Any], IPacket]
-HandlerFn = Callable[[abProcess, IPacket], Any]
+HandlerFn = Callable[[abProcess, ProtocolWrapper, IPacket], Any]
 
 
 class E_PROTOCOL_ID(Enum):
@@ -86,8 +87,8 @@ class ProtocolMeta:
                 ),
                 decoder=PDPlayableListReq.from_json,
                 receive_handlers={
-                    E_CATE.REST_SERVER: lambda process, packet: SocketIOServer.playable_list_request(
-                        process, packet
+                    E_CATE.REST_SERVER: lambda process, wrapper, packet: SocketIOServer.playable_list_request(
+                        process, wrapper, packet
                     ),
                 },
             ),
@@ -108,11 +109,11 @@ class ProtocolMeta:
                 ),
                 decoder=PlayableListReq.from_json,
                 receive_handlers={
-                    E_CATE.MESSAGE_BRIDGE: lambda process, packet: (
-                        MessageBridgeProcess.playable_list_request(process, packet)
+                    E_CATE.MESSAGE_BRIDGE: lambda process, wrapper, packet: (
+                        MessageBridgeProcess.playable_list_request(process, wrapper, packet)
                     ),
-                    E_CATE.DOWNLOADER: lambda process, packet: (
-                        DownloaderManager.playable_list_request(process, packet)
+                    E_CATE.DOWNLOADER: lambda process, wrapper, packet: (
+                        DownloaderManager.playable_list_request(process, wrapper, packet)
                     ),
                 },
             ),
@@ -132,8 +133,8 @@ class ProtocolMeta:
                 ),
                 decoder=InrPlayableListReq.from_json,
                 receive_handlers={
-                    E_CATE.DOWNLOADER: lambda process, packet: (
-                        DownloaderModule.playable_list_request(process, packet)
+                    E_CATE.DOWNLOADER: lambda process, wrapper, packet: (
+                        DownloaderModule.playable_list_request(process, wrapper, packet)
                     )
                 },
             ),

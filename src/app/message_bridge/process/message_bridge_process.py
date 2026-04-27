@@ -1,6 +1,7 @@
 from common.process.imdg_bus_process import IImdgBusProcess, ImdgBusProcess
 from protocol.message.packet import IPacket
 from protocol.protocol_meta import E_PROTOCOL_ID, ProtocolMeta
+from protocol.protocol_wrapper import ProtocolWrapper
 
 
 class MessageBridgeProcess(ImdgBusProcess):
@@ -8,7 +9,7 @@ class MessageBridgeProcess(ImdgBusProcess):
         super().__init__(app_name, process_name)
 
     @staticmethod
-    def playable_list_request(process: IImdgBusProcess, packet: IPacket):
+    def playable_list_request(process: IImdgBusProcess, wrapper: ProtocolWrapper, packet: IPacket):
         from process_category.enum_category import E_CATE
         from protocol.protocol_owner import ProtocolOwner
         sender = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
@@ -22,4 +23,5 @@ class MessageBridgeProcess(ImdgBusProcess):
             packet.start_time,
             packet.end_time,
         )
-        process.send_message_imdg(fwd_packet.to_json())
+        envelope = ProtocolWrapper.get_protocol_wrapper(fwd_packet).get_protocol_packet_message()
+        process.send_message_imdg(envelope)
