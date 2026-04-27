@@ -1,7 +1,7 @@
 from python_library.define.enum import IENUM
 
-from app.downloader.process.downloader_manager import DownloaderManager
-from app.downloader.process.downloader_module import DownloaderModule
+from app.downloader.process.manager.manager import DownloaderManager
+from app.downloader.process.module.module import DownloaderModule
 from app.message_bridge.process.message_bridge_process import MessageBridgeProcess
 from app.rest.process.socket_io_process import SocketIOProcess
 from process_category.enum_sensor import E_LIDAR, E_CAMERA

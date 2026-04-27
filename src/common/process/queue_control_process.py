@@ -26,4 +26,3 @@ class QueueControlProcess(StepProcess):
 
     def on_proc_every_frame(self):
         pass
-

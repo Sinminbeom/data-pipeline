@@ -18,6 +18,7 @@ HandlerFn = Callable[[abProcess, ProtocolWrapper, IMessage], Any]
 class E_PROTOCOL_ID(Enum):
     PD_PLAYABLE_LIST_REQ = "PD_100"
     PLAYABLE_LIST_REQ = "100"
+    PLAYABLE_LIST_REP = "101"
     INR_PLAYABLE_LIST_REQ = "-100"
 
 
@@ -65,11 +66,11 @@ class ProtocolMeta:
     def _register_protocols(cls) -> None:
         from process_category.enum_category import E_CATE
         from app.rest.websocket_server import SocketIOServer
-        from app.downloader.process.downloader_manager import DownloaderManager
-        from app.downloader.process.downloader_module import DownloaderModule
+        from app.downloader.process.manager.manager import DownloaderManager
+        from app.downloader.process.module.module import DownloaderModule
         from app.message_bridge.process.message_bridge_process import MessageBridgeProcess
         from protocol.message.external.ui.playable_list import PDPlayableListReq
-        from protocol.message.imdg.playable_list import PlayableListReq
+        from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
         from protocol.message.process.playable_list import InrPlayableListReq
 
         # PD (외부 통신, raw dataclass)
@@ -115,6 +116,25 @@ class ProtocolMeta:
                     E_CATE.DOWNLOADER: lambda process, wrapper, packet: (
                         DownloaderManager.playable_list_request(process, wrapper, packet)
                     ),
+                },
+            ),
+        )
+
+        # IMDG (앱 간 통신, RESPONSE)
+        cls._register(
+            E_PROTOCOL_ID.PLAYABLE_LIST_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, sensor_id_list, section_list, response: PlayableListRep(
+                    protocol_id=E_PROTOCOL_ID.PLAYABLE_LIST_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    sensor_id_list=sensor_id_list if sensor_id_list is not None else [],
+                    section_list=section_list if section_list is not None else [],
+                    response=response,
+                ),
+                decoder=PlayableListRep.from_json,
+                receive_handlers={
+                    # MESSAGE_BRIDGE에서 RESPONSE 받음 — 추후 필요 시 핸들러 추가
                 },
             ),
         )
