@@ -1,8 +1,7 @@
 from enum import IntEnum
 
 from define.define import E_COMMUNICATION_TYPE
-from protocol.message.packet import IPacket
-from utils.jsonpickle_util import JsonpickleUtil
+from protocol.message.message import IMessage
 from utils.string_builder import StringBuilder
 from utils.time_string_fit import TimeStringFit, E_TIMEFORMAT
 
@@ -21,12 +20,16 @@ class ProtocolWrapper:
 
     sequence_id = dict()
 
-    def __init__(self, message_id, protocol_message: IPacket):
-        self.communication_type = protocol_message.header.communication_type
-        self.protocol_id = protocol_message.header.protocol_id
-        self.message_direction = protocol_message.header.message_direction
-        self.sender = protocol_message.header.sender
-        self.receiver = protocol_message.header.receiver
+    def __init__(self, message_id: str, protocol_message: IMessage):
+        # 모든 message는 root level에 protocol_id/sender/receiver/message_direction 보유.
+        # communication_type은 abProtocolMessage 계열에만 있음 (pdPacket엔 없음 → NORMAL fallback).
+        self.communication_type = getattr(
+            protocol_message, "communication_type", E_COMMUNICATION_TYPE.NORMAL
+        )
+        self.protocol_id = protocol_message.protocol_id
+        self.message_direction = protocol_message.message_direction
+        self.sender = protocol_message.sender
+        self.receiver = protocol_message.receiver
         self.protocol_message = protocol_message
         self.message_id = message_id
 
@@ -38,7 +41,7 @@ class ProtocolWrapper:
             .append(self.protocol_id).append(self.DELIM_CHAR) \
             .append(self.sender).append(self.DELIM_CHAR) \
             .append(self.receiver).append(self.DELIM_CHAR) \
-            .append(JsonpickleUtil.encode_internal(self.protocol_message))
+            .append(self.protocol_message.to_json())
         return sb.to_string()
 
     @staticmethod
@@ -54,9 +57,9 @@ class ProtocolWrapper:
         return field_key + "_" + f"{seq:08}"
 
     @staticmethod
-    def get_protocol_wrapper(protocol_message_object: IPacket) -> "ProtocolWrapper":
+    def get_protocol_wrapper(protocol_message: IMessage) -> "ProtocolWrapper":
         message_id = ProtocolWrapper.get_sequence_id_now()
-        return ProtocolWrapper(message_id, protocol_message_object)
+        return ProtocolWrapper(message_id, protocol_message)
 
     @staticmethod
     def get_split_protocol_message(protocol_message_string: str) -> list[str]:
@@ -82,7 +85,7 @@ class ProtocolWrapper:
     @staticmethod
     def decode_protocol_wrapper_with_message_protocol(
         protocol_message_string: str,
-    ) -> tuple["ProtocolWrapper", IPacket]:
+    ) -> tuple["ProtocolWrapper", IMessage]:
         from protocol.protocol_meta import ProtocolMeta
 
         splits = ProtocolWrapper.get_split_protocol_message(protocol_message_string)
@@ -91,6 +94,6 @@ class ProtocolWrapper:
         protocol_id = splits[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.PROTOCOL_ID]
         protocol_message_json = splits[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.PROTOCOL_MESSAGE]
 
-        packet = ProtocolMeta.get_json_decoder(protocol_id)(protocol_message_json)
-        wrapper = ProtocolWrapper(message_id, packet)
-        return wrapper, packet
+        message = ProtocolMeta.get_json_decoder(protocol_id)(protocol_message_json)
+        wrapper = ProtocolWrapper(message_id, message)
+        return wrapper, message

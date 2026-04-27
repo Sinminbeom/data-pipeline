@@ -1,22 +1,29 @@
-from dataclasses import dataclass
-from typing import Type
+import json
+from dataclasses import asdict, dataclass
 
-from protocol.message.packet import abPacket, T
+from protocol.message.message import IMessage, E_PROTOCOL_MESSAGE_DIRECTION
 
 
 @dataclass
-class ExternalPacket(abPacket):
+class pdPacket(IMessage):
+    """외부(UI/WebSocket) 통신 base. communication_type 없음, plain flat dataclass."""
+    protocol_id: str = ""
+    sender: str = ""
+    receiver: str = ""
+    message_direction: E_PROTOCOL_MESSAGE_DIRECTION = E_PROTOCOL_MESSAGE_DIRECTION.REQUEST
 
     def to_json(self) -> str:
-        # 내부 저장/디버깅/로그 목적
-        return self._encode_internal(self)
-
-    def to_json_public(self) -> str:
-        # 외부 전송 목적
-        return self._encode_external(self)
+        return json.dumps(asdict(self))
 
     @classmethod
-    def from_json(cls: Type[T], json_data: str) -> T:
-        # 외부에서 수신한 raw를 객체로 복원(프로젝트의 internal decoder를 사용)
-        return cls._decode_internal(expected_type=cls, json_data=json_data)
+    def from_json(cls, json_string: str):
+        return cls(**json.loads(json_string))
 
+
+@dataclass
+class pdResponsePacket(pdPacket):
+    """RESPONSE PD packet. code/code_nm/reason 직접 보유 (replayer 동일)."""
+    message_direction: E_PROTOCOL_MESSAGE_DIRECTION = E_PROTOCOL_MESSAGE_DIRECTION.RESPONSE
+    code: str = ""
+    code_nm: str = ""
+    reason: str = ""
