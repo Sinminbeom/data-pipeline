@@ -8,7 +8,6 @@ import uvicorn
 from common.process.imdg_bus_process import IImdgBusProcess
 from common.process.queue_control_process import QueueControlProcess
 from protocol.message.external.ui.playable_list import PDPlayableListReq
-from protocol.message.packet import E_PROTOCOL_MESSAGE_DIRECTION
 from protocol.protocol_meta import ProtocolMeta, E_PROTOCOL_ID
 from protocol.protocol_owner import ProtocolOwner
 
@@ -72,7 +71,6 @@ class SocketIOServer(abWebSocketServer):
         receiver = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
 
         message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PLAYABLE_LIST_REQ)(
-            E_PROTOCOL_MESSAGE_DIRECTION.REQUEST,
             sender,
             receiver,
             protocol_message.vehicle_id,

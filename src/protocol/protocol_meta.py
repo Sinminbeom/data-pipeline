@@ -6,7 +6,7 @@ from typing import Any, Callable, Dict, Mapping, ClassVar
 
 from python_library.process.process import abProcess
 
-from protocol.message.packet import E_PROTOCOL_MESSAGE_DIRECTION, IPacket
+from protocol.message.packet import IPacket
 
 ReceiverKey = Any
 FactoryFn = Callable[..., IPacket]
@@ -93,13 +93,12 @@ class ProtocolMeta:
             ),
         )
 
-        # Normal
+        # IMDG
         cls._register(
             E_PROTOCOL_ID.PLAYABLE_LIST_REQ,
             ProtocolEntry(
-                factory=lambda message_direction, sender, receiver, vehicle_id, sensor_id_list, start_time, end_time: PlayableListReq(
+                factory=lambda sender, receiver, vehicle_id, sensor_id_list, start_time, end_time: PlayableListReq(
                     E_PROTOCOL_ID.PLAYABLE_LIST_REQ.value,
-                    E_PROTOCOL_MESSAGE_DIRECTION(message_direction),
                     sender,
                     receiver,
                     vehicle_id,

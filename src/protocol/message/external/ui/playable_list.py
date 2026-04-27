@@ -21,7 +21,7 @@ class PDPlayableListRep(ExternalPacket):
     ) -> None:
         super().__init__(
             header=Header(
-                communication_type=E_COMMUNICATION_TYPE.NORMAL,
+                communication_type=E_COMMUNICATION_TYPE.EXTERNAL,
                 protocol_id=protocol_id,
                 sender=sender,
                 receiver=receiver,
@@ -51,7 +51,7 @@ class PDPlayableListReq(ExternalPacket):
     ) -> None:
         super().__init__(
             header=Header(
-                communication_type=E_COMMUNICATION_TYPE.NORMAL,
+                communication_type=E_COMMUNICATION_TYPE.EXTERNAL,
                 message_direction=E_PROTOCOL_MESSAGE_DIRECTION(message_direction),
                 protocol_id=protocol_id,
                 sender=sender,
