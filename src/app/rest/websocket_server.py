@@ -10,6 +10,7 @@ from common.process.queue_control_process import QueueControlProcess
 from protocol.message.external.ui.playable_list import PDPlayableListReq
 from protocol.protocol_meta import ProtocolMeta, E_PROTOCOL_ID
 from protocol.protocol_owner import ProtocolOwner
+from protocol.protocol_wrapper import ProtocolWrapper
 
 
 class abWebSocketServer(ABC):
@@ -63,7 +64,11 @@ class SocketIOServer(abWebSocketServer):
         super().__init__(_parents_process, _bind_ip, _bind_port)
 
     @staticmethod
-    def playable_list_request(process: IImdgBusProcess, protocol_message: PDPlayableListReq):
+    def playable_list_request(
+        process: IImdgBusProcess,
+        wrapper: ProtocolWrapper,
+        packet: PDPlayableListReq,
+    ):
         from process_category.enum_category import E_CATE
 
 
@@ -73,13 +78,14 @@ class SocketIOServer(abWebSocketServer):
         message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PLAYABLE_LIST_REQ)(
             sender,
             receiver,
-            protocol_message.vehicle_id,
-            protocol_message.sensor_id_list,
-            protocol_message.start_time,
-            protocol_message.end_time,
+            packet.vehicle_id,
+            packet.sensor_id_list,
+            packet.start_time,
+            packet.end_time,
         )
 
-        process.send_message_imdg(message.to_json())
+        envelope = ProtocolWrapper.get_protocol_wrapper(message).get_protocol_packet_message()
+        process.send_message_imdg(envelope)
 
     def on_init(self) -> None:
         self.get_parent_process().on_register_handler(ProtocolMeta.get_receive_handler_container())
@@ -100,7 +106,7 @@ class SocketIOServer(abWebSocketServer):
                 return
 
             packet = ProtocolMeta.get_json_decoder(protocol_id)(message)
+            wrapper = ProtocolWrapper.get_protocol_wrapper(packet)
 
             recv_handler = ProtocolMeta.get_receive_handler(protocol_id, receiver_name)
-
-            result = recv_handler(self.get_parent_process(), packet)
+            recv_handler(self.get_parent_process(), wrapper, packet)

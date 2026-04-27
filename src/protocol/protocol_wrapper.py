@@ -6,7 +6,7 @@ from utils.jsonpickle_util import JsonpickleUtil
 from utils.string_builder import StringBuilder
 from utils.time_string_fit import TimeStringFit, E_TIMEFORMAT
 
-# TODO: 정리할것
+
 class ProtocolWrapper:
     DELIM_CHAR = "|:|"
 
@@ -54,20 +54,43 @@ class ProtocolWrapper:
         return field_key + "_" + f"{seq:08}"
 
     @staticmethod
-    def get_protocol_wrapper(protocol_message_object):
+    def get_protocol_wrapper(protocol_message_object: IPacket) -> "ProtocolWrapper":
         message_id = ProtocolWrapper.get_sequence_id_now()
         return ProtocolWrapper(message_id, protocol_message_object)
 
     @staticmethod
-    def decode_protocol_wrapper(protocol_message_string):
-        s = protocol_message_string.split(ProtocolWrapper.DELIM_CHAR)
+    def get_split_protocol_message(protocol_message_string: str) -> list[str]:
+        return protocol_message_string.split(ProtocolWrapper.DELIM_CHAR)
 
-        communication_type = s[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.COMMUNICATION_TYPE]
-        message_id = s[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.MESSAGE_ID]
-        protocol_id = s[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.PROTOCOL_ID]
-        message_direction = s[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.MESSAGE_DIRECTION]
-        sender = s[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.SENDER]
-        receiver = s[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.RECEIVER]
-        protocol_message = s[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.PROTOCOL_MESSAGE]
+    @staticmethod
+    def get_communication_type_with_splits(splits: list[str]) -> str:
+        return splits[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.COMMUNICATION_TYPE]
 
-        return communication_type, protocol_id, message_id, message_direction, sender, receiver, protocol_message
+    @staticmethod
+    def get_protocol_id_with_splits(splits: list[str]) -> str:
+        return splits[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.PROTOCOL_ID]
+
+    @staticmethod
+    def get_receiver_with_splits(splits: list[str]) -> str:
+        return splits[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.RECEIVER]
+
+    @staticmethod
+    def decode_protocol_wrapper(protocol_message_string: str) -> "ProtocolWrapper":
+        wrapper, _ = ProtocolWrapper.decode_protocol_wrapper_with_message_protocol(protocol_message_string)
+        return wrapper
+
+    @staticmethod
+    def decode_protocol_wrapper_with_message_protocol(
+        protocol_message_string: str,
+    ) -> tuple["ProtocolWrapper", IPacket]:
+        from protocol.protocol_meta import ProtocolMeta
+
+        splits = ProtocolWrapper.get_split_protocol_message(protocol_message_string)
+
+        message_id = splits[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.MESSAGE_ID]
+        protocol_id = splits[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.PROTOCOL_ID]
+        protocol_message_json = splits[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.PROTOCOL_MESSAGE]
+
+        packet = ProtocolMeta.get_json_decoder(protocol_id)(protocol_message_json)
+        wrapper = ProtocolWrapper(message_id, packet)
+        return wrapper, packet

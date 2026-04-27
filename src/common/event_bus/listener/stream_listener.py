@@ -1,4 +1,3 @@
-import json
 import socket
 
 import redis
@@ -9,6 +8,7 @@ from python_library.process.process import abProcess
 from common.event_bus.listener.listener import abListener
 from config.project_config import ProjectConfig
 from protocol.protocol_meta import ProtocolMeta
+from protocol.protocol_wrapper import ProtocolWrapper
 
 
 class StreamListener(abListener):
@@ -42,12 +42,12 @@ class StreamListener(abListener):
         )
         for _, entries in (messages or []):
             for msg_id, fields in entries:
-                message_data = fields[b"data"].decode("utf-8")
-                json_data = json.loads(message_data)
-                protocol_id = json_data["header"]["protocol_id"]
-                receiver = json_data["header"]["receiver"]
-                packet = ProtocolMeta.get_json_decoder(protocol_id)(message_data)
-                ProtocolMeta.get_receive_handler(protocol_id, receiver)(
-                    self._parent_process, packet
+                envelope = fields[b"data"].decode("utf-8")
+                splits = ProtocolWrapper.get_split_protocol_message(envelope)
+                receiver = ProtocolWrapper.get_receiver_with_splits(splits)
+
+                wrapper, packet = ProtocolWrapper.decode_protocol_wrapper_with_message_protocol(envelope)
+                ProtocolMeta.get_receive_handler(wrapper.protocol_id, receiver)(
+                    self._parent_process, wrapper, packet
                 )
                 self._redis.xack(self._stream_name, self._group_name, msg_id)
