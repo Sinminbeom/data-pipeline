@@ -1,6 +1,6 @@
 from common.event_bus.listener.stream_listener import StreamListener
 from common.process.imdg_bus_process import IImdgBusProcess, ImdgBusProcess
-from protocol.message.packet import IPacket
+from protocol.message.message import IMessage
 from protocol.protocol_wrapper import ProtocolWrapper
 
 
@@ -15,7 +15,7 @@ class DownloaderManager(ImdgBusProcess):
         self._stream_listener.start()
 
     @staticmethod
-    def playable_list_request(process: IImdgBusProcess, wrapper: ProtocolWrapper, packet: IPacket):
+    def playable_list_request(process: IImdgBusProcess, wrapper: ProtocolWrapper, packet: IMessage):
         pass
 
     def action(self) -> None:

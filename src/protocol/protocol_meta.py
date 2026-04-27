@@ -6,13 +6,13 @@ from typing import Any, Callable, Dict, Mapping, ClassVar
 
 from python_library.process.process import abProcess
 
-from protocol.message.packet import IPacket
+from protocol.message.message import IMessage
 from protocol.protocol_wrapper import ProtocolWrapper
 
 ReceiverKey = Any
-FactoryFn = Callable[..., IPacket]
-DecoderFn = Callable[[Any], IPacket]
-HandlerFn = Callable[[abProcess, ProtocolWrapper, IPacket], Any]
+FactoryFn = Callable[..., IMessage]
+DecoderFn = Callable[[str], IMessage]
+HandlerFn = Callable[[abProcess, ProtocolWrapper, IMessage], Any]
 
 
 class E_PROTOCOL_ID(Enum):
@@ -69,21 +69,21 @@ class ProtocolMeta:
         from app.downloader.process.downloader_module import DownloaderModule
         from app.message_bridge.process.message_bridge_process import MessageBridgeProcess
         from protocol.message.external.ui.playable_list import PDPlayableListReq
-        from protocol.message.ipc.imdg.playable_list import PlayableListReq
-        from protocol.message.ipc.inner.playable_list import InrPlayableListReq
+        from protocol.message.imdg.playable_list import PlayableListReq
+        from protocol.message.process.playable_list import InrPlayableListReq
 
-        # PD
+        # PD (외부 통신, raw dataclass)
         cls._register(
             E_PROTOCOL_ID.PD_PLAYABLE_LIST_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver, vehicle_id, sensor_id_list, start_time, end_time: PDPlayableListReq(
-                    E_PROTOCOL_ID.PD_PLAYABLE_LIST_REQ.value,
-                    sender,
-                    receiver,
-                    vehicle_id,
-                    sensor_id_list,
-                    start_time,
-                    end_time,
+                    protocol_id=E_PROTOCOL_ID.PD_PLAYABLE_LIST_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                    vehicle_id=vehicle_id,
+                    sensor_id_list=sensor_id_list,
+                    start_time=start_time,
+                    end_time=end_time,
                 ),
                 decoder=PDPlayableListReq.from_json,
                 receive_handlers={
@@ -94,18 +94,18 @@ class ProtocolMeta:
             ),
         )
 
-        # IMDG
+        # IMDG (앱 간 통신)
         cls._register(
             E_PROTOCOL_ID.PLAYABLE_LIST_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver, vehicle_id, sensor_id_list, start_time, end_time: PlayableListReq(
-                    E_PROTOCOL_ID.PLAYABLE_LIST_REQ.value,
-                    sender,
-                    receiver,
-                    vehicle_id,
-                    sensor_id_list,
-                    start_time,
-                    end_time,
+                    protocol_id=E_PROTOCOL_ID.PLAYABLE_LIST_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                    vehicle_id=vehicle_id,
+                    sensor_id_list=sensor_id_list,
+                    start_time=start_time,
+                    end_time=end_time,
                 ),
                 decoder=PlayableListReq.from_json,
                 receive_handlers={
@@ -119,17 +119,17 @@ class ProtocolMeta:
             ),
         )
 
-        # INR
+        # PROCESS (앱 내 통신)
         cls._register(
             E_PROTOCOL_ID.INR_PLAYABLE_LIST_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver, vehicle_id, start_time, end_time: InrPlayableListReq(
-                    E_PROTOCOL_ID.INR_PLAYABLE_LIST_REQ.value,
-                    sender,
-                    receiver,
-                    vehicle_id,
-                    start_time,
-                    end_time,
+                    protocol_id=E_PROTOCOL_ID.INR_PLAYABLE_LIST_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                    vehicle_id=vehicle_id,
+                    start_time=start_time,
+                    end_time=end_time,
                 ),
                 decoder=InrPlayableListReq.from_json,
                 receive_handlers={

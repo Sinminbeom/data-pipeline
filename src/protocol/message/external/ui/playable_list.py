@@ -1,64 +1,31 @@
-from dataclasses import dataclass
+import json
+from dataclasses import asdict, dataclass, field
 
-from define.define import E_COMMUNICATION_TYPE
-from protocol.message.external.external import ExternalPacket
+from protocol.message.external.external import pdPacket, pdResponsePacket
 from protocol.message.external.ui.section_element import PDSectionElement
-from protocol.message.packet import Header, E_PROTOCOL_MESSAGE_DIRECTION
 
 
 @dataclass
-class PDPlayableListRep(ExternalPacket):
-    sensor_id_list: list[str]
-    section_list : list[PDSectionElement]
-
-    def __init__(
-        self,
-        protocol_id: str,
-        sender: str,
-        receiver: str,
-        sensor_id_list: list,
-        section_list: list[PDSectionElement]
-    ) -> None:
-        super().__init__(
-            header=Header(
-                communication_type=E_COMMUNICATION_TYPE.EXTERNAL,
-                protocol_id=protocol_id,
-                sender=sender,
-                receiver=receiver,
-            )
-        )
-        self.sensor_id_list = sensor_id_list
-        self.section_list = section_list
+class PDPlayableListReq(pdPacket):
+    vehicle_id: str = ""
+    sensor_id_list: list[str] = field(default_factory=list)
+    start_time: str = ""
+    end_time: str = ""
 
 
 @dataclass
-class PDPlayableListReq(ExternalPacket):
-    vehicle_id: str
-    sensor_id_list: list[str]
-    start_time: str
-    end_time: str
+class PDPlayableListRep(pdResponsePacket):
+    sensor_id_list: list[str] = field(default_factory=list)
+    section_list: list[PDSectionElement] = field(default_factory=list)
 
-    def __init__(
-        self,
-        protocol_id: str,
-        message_direction: int,
-        sender: str,
-        receiver: str,
-        vehicle_id: str,
-        sensor_id_list: list,
-        start_time: str,
-        end_time: str
-    ) -> None:
-        super().__init__(
-            header=Header(
-                communication_type=E_COMMUNICATION_TYPE.EXTERNAL,
-                message_direction=E_PROTOCOL_MESSAGE_DIRECTION(message_direction),
-                protocol_id=protocol_id,
-                sender=sender,
-                receiver=receiver,
-            )
-        )
-        self.vehicle_id = vehicle_id
-        self.sensor_id_list = sensor_id_list
-        self.start_time = start_time
-        self.end_time = end_time
+    def to_json(self) -> str:
+        d = asdict(self)
+        d["section_list"] = [asdict(s) for s in self.section_list]
+        return json.dumps(d)
+
+    @classmethod
+    def from_json(cls, json_string: str) -> "PDPlayableListRep":
+        d = json.loads(json_string)
+        if d.get("section_list") is not None:
+            d["section_list"] = [PDSectionElement(**s) for s in d["section_list"]]
+        return cls(**d)
