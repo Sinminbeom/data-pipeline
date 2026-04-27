@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 
-from define.define import E_COMMUNICATION_TYPE
-from protocol.message.ipc.ipc import IpcRequestPacket, IpcResponsePacket
-from protocol.message.packet import Header
+from protocol.message.ipc.ipc import (
+    InnerRequestPacket,
+    InnerResponsePacket,
+    Response,
+)
 
 
 # -----------------------------
@@ -10,7 +12,7 @@ from protocol.message.packet import Header
 # -----------------------------
 
 @dataclass
-class InrPlayableListReq(IpcRequestPacket):
+class InrPlayableListReq(InnerRequestPacket):
     vehicle_id: str = ""
     start_time: str = ""
     end_time: str = ""
@@ -24,14 +26,7 @@ class InrPlayableListReq(IpcRequestPacket):
         start_time: str,
         end_time: str,
     ) -> None:
-        super().__init__(
-            header=Header(
-                communication_type=E_COMMUNICATION_TYPE.PROCESS,
-                protocol_id=protocol_id,
-                sender=sender,
-                receiver=receiver,
-            )
-        )
+        super().__init__(protocol_id=protocol_id, sender=sender, receiver=receiver)
         self.vehicle_id = vehicle_id
         self.start_time = start_time
         self.end_time = end_time
@@ -42,7 +37,7 @@ class InrPlayableListReq(IpcRequestPacket):
 # -----------------------------
 
 @dataclass
-class InrPlayableListRep(IpcResponsePacket):
+class InrPlayableListRep(InnerResponsePacket):
     sensor_id: str = ""
     section_list: list = None
     return_message: str = ""
@@ -55,17 +50,14 @@ class InrPlayableListRep(IpcResponsePacket):
         sensor_id: str,
         section_list: list,
         return_message: str,
+        response: Response,
     ) -> None:
         super().__init__(
-            header=Header(
-                communication_type=E_COMMUNICATION_TYPE.PROCESS,
-                protocol_id=protocol_id,
-                sender=sender,
-                receiver=receiver,
-            ),
-            return_code=None
+            protocol_id=protocol_id,
+            sender=sender,
+            receiver=receiver,
+            response=response,
         )
-
         self.sensor_id = sensor_id
         self.section_list = section_list
         self.return_message = return_message

@@ -9,14 +9,14 @@ class E_META_COLUMN(IntEnum):
 
 class E_COMMUNICATION_TYPE(IntEnum):
     IMDG = 0
-    PROCESS = 1
-    NORMAL = 2
+    INNER = 1
+    EXTERNAL = 2
 
     # Enum 멤버로 안 들어가게만 nonmember 유지 (타입 문자열 힌트 없음)
     META = nonmember({
-        IMDG: {E_META_COLUMN.NAME: "IMDG", E_META_COLUMN.SYMBOL: "DG"},
-        PROCESS: {E_META_COLUMN.NAME: "PROCESS", E_META_COLUMN.SYMBOL: "IN"},
-        NORMAL: {E_META_COLUMN.NAME: "NORMAL", E_META_COLUMN.SYMBOL: "NO"},
+        IMDG: {E_META_COLUMN.NAME: "IMDG", E_META_COLUMN.SYMBOL: "IMDG"},
+        INNER: {E_META_COLUMN.NAME: "INNER", E_META_COLUMN.SYMBOL: "INNER"},
+        EXTERNAL: {E_META_COLUMN.NAME: "EXTERNAL", E_META_COLUMN.SYMBOL: "EXTERNAL"},
     })
 
     _SYMBOL_TO_TYPE = nonmember(None)  # dict[str, E_COMMUNICATION_TYPE] | None

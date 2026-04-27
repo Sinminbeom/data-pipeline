@@ -2,13 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from define.define import E_COMMUNICATION_TYPE
-from protocol.message.ipc.ipc import IpcRequestPacket
-from protocol.message.packet import Header, E_PROTOCOL_MESSAGE_DIRECTION
+from protocol.message.ipc.ipc import ImdgRequestPacket
 
 
 @dataclass
-class PlayableListReq(IpcRequestPacket):
+class PlayableListReq(ImdgRequestPacket):
 
     vehicle_id: str = ""
     sensor_id_list: list = None
@@ -18,7 +16,6 @@ class PlayableListReq(IpcRequestPacket):
     def __init__(
         self,
         protocol_id: str,
-        message_direction: int,
         sender: str,
         receiver: str,
         vehicle_id: str,
@@ -26,15 +23,7 @@ class PlayableListReq(IpcRequestPacket):
         start_time: str,
         end_time: str,
     ) -> None:
-        super().__init__(
-            header=Header(
-                communication_type=E_COMMUNICATION_TYPE.IMDG,
-                message_direction=E_PROTOCOL_MESSAGE_DIRECTION(message_direction),
-                protocol_id=protocol_id,
-                sender=sender,
-                receiver=receiver,
-            )
-        )
+        super().__init__(protocol_id=protocol_id, sender=sender, receiver=receiver)
         self.vehicle_id = vehicle_id
         self.sensor_id_list = sensor_id_list
         self.start_time = start_time

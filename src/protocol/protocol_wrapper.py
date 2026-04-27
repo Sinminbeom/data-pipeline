@@ -13,8 +13,8 @@ class ProtocolWrapper:
     class E_PROTOCOL_MESSAGE_ELE(IntEnum):
         COMMUNICATION_TYPE = 0
         MESSAGE_ID = 1
-        PROTOCOL_ID = 2
-        MESSAGE_DIRECTION = 3
+        MESSAGE_DIRECTION = 2
+        PROTOCOL_ID = 3
         SENDER = 4
         RECEIVER = 5
         PROTOCOL_MESSAGE = 6
@@ -22,11 +22,7 @@ class ProtocolWrapper:
     sequence_id = dict()
 
     def __init__(self, message_id, protocol_message: IPacket):
-        try:
-            self.communication_type = protocol_message.header.communication_type
-        except Exception as e:
-            self.communication_type = E_COMMUNICATION_TYPE.NORMAL
-
+        self.communication_type = protocol_message.header.communication_type
         self.protocol_id = protocol_message.header.protocol_id
         self.message_direction = protocol_message.header.message_direction
         self.sender = protocol_message.header.sender
@@ -38,8 +34,8 @@ class ProtocolWrapper:
         sb = StringBuilder()
         sb.append(E_COMMUNICATION_TYPE.get_symbol(self.communication_type)).append(self.DELIM_CHAR) \
             .append(self.message_id).append(self.DELIM_CHAR) \
-            .append(self.protocol_id).append(self.DELIM_CHAR) \
             .append(self.message_direction).append(self.DELIM_CHAR) \
+            .append(self.protocol_id).append(self.DELIM_CHAR) \
             .append(self.sender).append(self.DELIM_CHAR) \
             .append(self.receiver).append(self.DELIM_CHAR) \
             .append(JsonpickleUtil.encode_internal(self.protocol_message))
