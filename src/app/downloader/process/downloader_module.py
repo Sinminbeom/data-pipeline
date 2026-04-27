@@ -13,6 +13,3 @@ class DownloaderModule(QueueControlProcess):
     @staticmethod
     def playable_list_request(process: abProcess, wrapper: ProtocolWrapper, packet: IMessage):
         pass
-
-    def action(self) -> None:
-        pass
