@@ -9,17 +9,30 @@ class QueueControlProcess(StepProcess):
     def __init__(self, app_name: str, process_name: str) -> None:
         super().__init__(app_name, process_name)
 
-        self._innerQueueBus = None
+        self._inner_queue_bus = None
         self._handler: dict[E_PROTOCOL_ID, Mapping[ReceiverKey, HandlerFn]] | None = None
 
     def on_init(self):
-        self._innerQueueBus=InnerQueueBus(self)
-        self._innerQueueBus.start()
+        self._inner_queue_bus=InnerQueueBus(self)
+        self._inner_queue_bus.start()
         pass
 
     def on_register_handler(self, handler: dict[E_PROTOCOL_ID, Mapping[ReceiverKey, HandlerFn]]):
         self._handler = handler
         pass
+
+    def send_message_inner_queue(self, receiver_process_name: str, message: str) -> None:
+        assert self._inner_queue_bus is not None
+        self._inner_queue_bus.send_message_inner_queue(receiver_process_name, message)
+
+    def send_message_req_inner_queue(
+        self,
+        protocol_id,
+        receiver_process_name: str,
+        *args,
+    ) -> None:
+        assert self._inner_queue_bus is not None
+        self._inner_queue_bus.send_message_req_inner_queue(protocol_id, receiver_process_name, *args)
 
     def on_proc_once(self):
         pass
