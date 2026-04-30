@@ -1,10 +1,15 @@
-from abc import abstractmethod
+from __future__ import annotations
 
-from common.event_bus.imdg_bus import ImdgBus
+from abc import abstractmethod
+from typing import TYPE_CHECKING
+
 from common.process.bus_process import BusProcess, IBusProcess
 from config.project_config import ProjectConfig
 from define.define import E_COMMUNICATION_TYPE
 from protocol.message.message import ResponseInfo
+
+if TYPE_CHECKING:
+    from common.event_bus.imdg_bus import ImdgBus
 
 
 class IImdgBusProcess(IBusProcess):
@@ -32,6 +37,8 @@ class ImdgBusProcess(BusProcess, IImdgBusProcess):
         self._imdg_bus: ImdgBus | None = None
 
     def on_init(self):
+        from common.event_bus.imdg_bus import ImdgBus
+
         super().on_init()
         self._imdg_bus = ImdgBus(self, self.channel_name)
         self._imdg_bus.start()

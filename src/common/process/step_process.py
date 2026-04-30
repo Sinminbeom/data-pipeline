@@ -5,26 +5,15 @@ from enum import Enum
 import time
 from typing import Optional
 
-from python_library.logger.app_logger import AppLogger
-from python_library.process.queue_process import QueueProcess
 from python_library.state import StateComponent, StateMap
 
-from config.project_config import ProjectConfig
+from common.process.app_process import AppProcess
 
 
-class StepProcess(QueueProcess):
+class StepProcess(AppProcess):
     def __init__(self, app_name: str, process_name: str) -> None:
-        super().__init__(process_name)
-        self._app_name = app_name
-
+        super().__init__(app_name, process_name)
         self._state_component: Optional[StateComponent] = None
-
-    def _set_config(self) -> None:
-        AppLogger.set_config(ProjectConfig.DEFAULT_CONFIG_PATH, self.name)
-        ProjectConfig.set_config(ProjectConfig.DEFAULT_CONFIG_PATH)
-
-    def get_app_name(self) -> str:
-        return self._app_name
 
     def set_state_component(
         self,

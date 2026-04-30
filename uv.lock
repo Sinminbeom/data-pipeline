@@ -428,7 +428,7 @@ dev = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.128.0" },
     { name = "jsonpickle", specifier = ">=4.1.1" },
-    { name = "python-library", git = "ssh://git@personal-github/Sinminbeom/python-library.git?tag=v2.6.0" },
+    { name = "python-library", git = "ssh://git@personal-github/Sinminbeom/python-library.git?tag=v2.7.0" },
     { name = "python-socketio", extras = ["client"], specifier = ">=5.16.0" },
     { name = "redis", specifier = ">=7.1.0" },
     { name = "requests", specifier = ">=2.32.5" },
@@ -854,8 +854,8 @@ wheels = [
 
 [[package]]
 name = "python-library"
-version = "2.6.0"
-source = { git = "ssh://git@personal-github/Sinminbeom/python-library.git?tag=v2.6.0#eabf56497584bba7689d3c51020ddde87e1b1601" }
+version = "2.7.0"
+source = { git = "ssh://git@personal-github/Sinminbeom/python-library.git?tag=v2.7.0#85f923e7e2216af0f370758ff9f68ae62fb594e3" }
 dependencies = [
     { name = "argon2-cffi" },
     { name = "boto3" },
