@@ -1,16 +1,18 @@
+from __future__ import annotations
+
 import time
 
-from python_library.process.process import abProcess
 from redis.client import PubSub
 
 from common.event_bus.listener.listener import abListener
+from common.process.imdg_bus_process import ImdgBusProcess
 from define.define import E_COMMUNICATION_TYPE
 from protocol.protocol_meta import ProtocolMeta
 from protocol.protocol_wrapper import ProtocolWrapper
 
 
-class ImdgListener(abListener):
-    def __init__(self, parent_process: abProcess, pubsub: PubSub):
+class ImdgListener(abListener[ImdgBusProcess]):
+    def __init__(self, parent_process: ImdgBusProcess, pubsub: PubSub):
         super().__init__(parent_process)
         self._pubsub = pubsub
 

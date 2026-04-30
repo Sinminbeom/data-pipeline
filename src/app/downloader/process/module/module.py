@@ -12,4 +12,5 @@ class DownloaderModule(QueueControlProcess):
 
     @staticmethod
     def playable_list_request(process: abProcess, wrapper: ProtocolWrapper, packet: IMessage):
+        print(process.name)
         pass

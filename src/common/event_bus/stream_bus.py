@@ -3,11 +3,11 @@ from redis.client import Redis
 
 from python_library.process.process import abProcess
 
-from common.event_bus.event_bus import EventBus
+from common.event_bus.event_bus import abEventBus
 from config.project_config import ProjectConfig
 
 
-class StreamBus(EventBus):
+class StreamBus(abEventBus):
     def __init__(self, parent_process: abProcess) -> None:
         super().__init__(parent_process)
         config = ProjectConfig.instance()

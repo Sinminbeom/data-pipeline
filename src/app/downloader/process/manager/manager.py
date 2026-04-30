@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Optional
 
 from common.process.imdg_bus_process import ImdgBusProcess
 from protocol.message.message import IMessage
 from protocol.protocol_wrapper import ProtocolWrapper
+from protocol.section_element import SectionElement
 
+from app.downloader.process.manager.playable_info_container import PlayableInfoContainer
 from app.downloader.process.manager.state import (
     E_DOWNLOADER_MANAGER_STATE,
     build_state_map,
@@ -15,6 +17,7 @@ from app.downloader.process.manager.state import (
 class DownloaderManager(ImdgBusProcess):
     def __init__(self, app_name, process_name):
         super().__init__(app_name, process_name)
+        self._playable_infos = PlayableInfoContainer()
 
     def on_init(self):
         super().on_init()
@@ -31,6 +34,28 @@ class DownloaderManager(ImdgBusProcess):
             return None
         assert isinstance(current, E_DOWNLOADER_MANAGER_STATE)
         return current
+
+    def get_playable_sensor_ids(self) -> set[str]:
+        return self._playable_infos.get_playable_sensor_ids()
+
+    def set_playable_sensor_ids(self, sensor_ids: set[str]) -> None:
+        self._playable_infos.set_playable_sensor_ids(sensor_ids)
+
+    def init_playable_file_map(self, sensor_ids: set[str]) -> None:
+        file_map: dict[str, Any] = {sensor_id: None for sensor_id in sensor_ids}
+        self._playable_infos.set_playable_file_list(file_map)
+
+    def get_playable_file_list(self) -> dict[str, Any]:
+        return self._playable_infos.get_playable_file_list()
+
+    def append_playable_file(self, process_id: str, file_list: Any) -> None:
+        self._playable_infos.append_playable_file_list(process_id, file_list)
+
+    def get_playable_list(self) -> list[SectionElement]:
+        return self._playable_infos.get_playable_list()
+
+    def set_playable_list(self, playable_list: list[SectionElement]) -> None:
+        self._playable_infos.set_playable_list(playable_list)
 
     @staticmethod
     def playable_list_request(process: DownloaderManager, wrapper: ProtocolWrapper, packet: IMessage):

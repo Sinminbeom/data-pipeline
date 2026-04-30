@@ -1,11 +1,12 @@
-from python_library.process.process import abProcess
+from __future__ import annotations
 
-from common.event_bus.event_bus import EventBus
+from common.event_bus.event_bus import abEventBus
 from common.event_bus.listener.inner_queue_listener import InnerQueueListener
+from common.process.app_process import AppProcess
 
 
-class InnerQueueBus(EventBus):
-    def __init__(self, _parent_process: abProcess) -> None:
+class InnerQueueBus(abEventBus[AppProcess]):
+    def __init__(self, _parent_process: AppProcess) -> None:
         super().__init__(_parent_process)
         self.listener = InnerQueueListener(_parent_process)
 

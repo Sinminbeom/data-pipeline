@@ -1,14 +1,17 @@
-from abc import abstractmethod
+from __future__ import annotations
 
-from python_library.process.process import abProcess
+from typing import Generic, TypeVar
+
 from python_library.thread.thread import abThreading
 
+from common.process.app_process import AppProcess
 
-class abListener(abThreading):
-    def __init__(self, _parent_process: abProcess) -> None:
+ParentProcessT = TypeVar("ParentProcessT", bound=AppProcess)
+
+
+class abListener(abThreading, Generic[ParentProcessT]):
+    _parent_process: ParentProcessT
+
+    def __init__(self, parent_process: ParentProcessT) -> None:
         super().__init__()
-        self._parent_process: abProcess = _parent_process
-
-    @abstractmethod
-    def action(self) -> None:
-        pass
+        self._parent_process = parent_process
