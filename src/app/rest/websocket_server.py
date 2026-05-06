@@ -1,3 +1,4 @@
+import asyncio
 import json
 from abc import ABC, abstractmethod
 
@@ -7,7 +8,8 @@ import uvicorn
 
 from common.process.imdg_bus_process import IImdgBusProcess
 from common.process.queue_control_process import QueueControlProcess
-from protocol.message.external.ui.playable_list import PDPlayableListReq
+from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
+from protocol.message.message import IMessage
 from protocol.protocol_meta import ProtocolMeta, E_PROTOCOL_ID
 from protocol.protocol_owner import ProtocolOwner
 from protocol.protocol_wrapper import ProtocolWrapper
@@ -42,6 +44,10 @@ class abWebSocketServer(ABC):
         # FastAPI + Socket.IO 결합 ASGI 앱
         # socketio_path는 클라이언트의 연결 경로와 맞춰야 합니다(기본: /socket.io).
         self.app = socketio.ASGIApp(self.sio, other_asgi_app=self.fastapi_app)
+
+        # IMDG listener thread에서 sio.emit (coroutine)을 스케줄하기 위해
+        # uvicorn 기동 시점의 asyncio loop을 캐싱한다.
+        self._loop: asyncio.AbstractEventLoop | None = None
 
         self.init()
 
@@ -87,9 +93,36 @@ class SocketIOServer(abWebSocketServer):
         envelope = ProtocolWrapper.get_protocol_wrapper(message).get_protocol_packet_message()
         process.send_message_imdg(envelope)
 
+    @staticmethod
+    def playable_list_response(
+        process: IImdgBusProcess,
+        wrapper: ProtocolWrapper,
+        packet: IMessage,
+    ):
+        """MESSAGE_BRIDGE → REST_SERVER로 들어온 PD_PLAYABLE_LIST_REP를 socket.io로 broadcast."""
+        assert isinstance(packet, PDPlayableListRep)
+
+        # SocketIOProcess가 websocket_server를 들고 있다 (런타임 attr)
+        server: SocketIOServer | None = getattr(process, "websocket_server", None)
+        if server is None or server._loop is None:
+            print("[REST] websocket_server / asyncio loop 미초기화 — 응답 drop")
+            return
+
+        payload = packet.to_json()
+        # AsyncServer.emit은 coroutine. IMDG listener는 별도 thread이므로
+        # 메인 asyncio loop에 thread-safe하게 스케줄한다.
+        asyncio.run_coroutine_threadsafe(
+            server.sio.emit("message", payload),
+            server._loop,
+        )
+
     def on_init(self) -> None:
         self.get_parent_process().on_register_handler(ProtocolMeta.get_receive_handler_container())
 
+        @self.fastapi_app.on_event("startup")
+        async def _capture_event_loop():
+            # uvicorn이 띄운 asyncio loop을 캡처해두면 IMDG thread에서 emit 가능.
+            self._loop = asyncio.get_running_loop()
 
         # Socket.IO event
         @self.sio.on("message")

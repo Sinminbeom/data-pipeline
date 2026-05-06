@@ -17,9 +17,11 @@ HandlerFn = Callable[[abProcess, ProtocolWrapper, IMessage], Any]
 
 class E_PROTOCOL_ID(Enum):
     PD_PLAYABLE_LIST_REQ = "PD_100"
+    PD_PLAYABLE_LIST_REP = "PD_101"
     PLAYABLE_LIST_REQ = "100"
     PLAYABLE_LIST_REP = "101"
     INR_PLAYABLE_LIST_REQ = "-100"
+    INR_PLAYABLE_LIST_REP = "-101"
 
 
 @dataclass(frozen=True)
@@ -69,9 +71,9 @@ class ProtocolMeta:
         from app.downloader.process.manager.manager import DownloaderManager
         from app.downloader.process.module.module import DownloaderModule
         from app.message_bridge.process.message_bridge_process import MessageBridgeProcess
-        from protocol.message.external.ui.playable_list import PDPlayableListReq
+        from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
         from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
-        from protocol.message.process.playable_list import InrPlayableListReq
+        from protocol.message.process.playable_list import InrPlayableListReq, InrPlayableListRep
 
         # PD (외부 통신, raw dataclass)
         cls._register(
@@ -89,6 +91,29 @@ class ProtocolMeta:
                 decoder=PDPlayableListReq.from_json,
                 receive_handlers={
                     E_CATE.REST_SERVER: lambda process, wrapper, packet: SocketIOServer.playable_list_request(
+                        process, wrapper, packet
+                    ),
+                },
+            ),
+        )
+
+        # PD (외부 통신, RESPONSE) — REST_SERVER가 IMDG로 받아 socket.io broadcast
+        cls._register(
+            E_PROTOCOL_ID.PD_PLAYABLE_LIST_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, sensor_id_list, section_list, code, code_nm, reason: PDPlayableListRep(
+                    protocol_id=E_PROTOCOL_ID.PD_PLAYABLE_LIST_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    sensor_id_list=sensor_id_list if sensor_id_list is not None else [],
+                    section_list=section_list if section_list is not None else [],
+                    code=code,
+                    code_nm=code_nm,
+                    reason=reason,
+                ),
+                decoder=PDPlayableListRep.from_json,
+                receive_handlers={
+                    E_CATE.REST_SERVER: lambda process, wrapper, packet: SocketIOServer.playable_list_response(
                         process, wrapper, packet
                     ),
                 },
@@ -134,7 +159,9 @@ class ProtocolMeta:
                 ),
                 decoder=PlayableListRep.from_json,
                 receive_handlers={
-                    # MESSAGE_BRIDGE에서 RESPONSE 받음 — 추후 필요 시 핸들러 추가
+                    E_CATE.MESSAGE_BRIDGE: lambda process, wrapper, packet: (
+                        MessageBridgeProcess.playable_list_response(process, wrapper, packet)
+                    ),
                 },
             ),
         )
@@ -155,6 +182,27 @@ class ProtocolMeta:
                 receive_handlers={
                     E_CATE.DOWNLOADER: lambda process, wrapper, packet: (
                         DownloaderModule.playable_list_request(process, wrapper, packet)
+                    )
+                },
+            ),
+        )
+
+        # PROCESS (앱 내 통신, RESPONSE)
+        cls._register(
+            E_PROTOCOL_ID.INR_PLAYABLE_LIST_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, sensor_id, section_list, response: InrPlayableListRep(
+                    protocol_id=E_PROTOCOL_ID.INR_PLAYABLE_LIST_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    sensor_id=sensor_id,
+                    section_list=section_list if section_list is not None else [],
+                    response=response,
+                ),
+                decoder=InrPlayableListRep.from_json,
+                receive_handlers={
+                    E_CATE.DOWNLOADER: lambda process, wrapper, packet: (
+                        DownloaderManager.playable_list_response(process, wrapper, packet)
                     )
                 },
             ),
