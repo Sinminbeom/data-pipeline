@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Optional
+from typing import Optional
 
 from common.process.imdg_bus_process import ImdgBusProcess
 from protocol.message.message import IMessage
 from protocol.protocol_wrapper import ProtocolWrapper
-from protocol.section_element import SectionElement
+from protocol.section_element import SectionElement, SectionElementContainer
 
 from app.downloader.process.manager.playable_info_container import PlayableInfoContainer
 from app.downloader.process.manager.state import (
@@ -42,13 +42,13 @@ class DownloaderManager(ImdgBusProcess):
         self._playable_infos.set_playable_sensor_ids(sensor_ids)
 
     def init_playable_file_map(self, sensor_ids: set[str]) -> None:
-        file_map: dict[str, Any] = {sensor_id: None for sensor_id in sensor_ids}
+        file_map: dict[str, SectionElementContainer | None] = {sensor_id: None for sensor_id in sensor_ids}
         self._playable_infos.set_playable_file_list(file_map)
 
-    def get_playable_file_list(self) -> dict[str, Any]:
+    def get_playable_file_list(self) -> dict[str, SectionElementContainer | None]:
         return self._playable_infos.get_playable_file_list()
 
-    def append_playable_file(self, process_id: str, file_list: Any) -> None:
+    def append_playable_file(self, process_id: str, file_list: SectionElementContainer) -> None:
         self._playable_infos.append_playable_file_list(process_id, file_list)
 
     def get_playable_list(self) -> list[SectionElement]:
@@ -76,3 +76,21 @@ class DownloaderManager(ImdgBusProcess):
 
         if process._state_component is not None:
             process._state_component.change_state(E_DOWNLOADER_MANAGER_STATE.PLAYABLE, state_param_dto=packet)
+
+    @staticmethod
+    def playable_list_response(process: DownloaderManager, wrapper: ProtocolWrapper, packet: IMessage):
+        from protocol.message.process.playable_list import InrPlayableListRep
+
+        assert isinstance(packet, InrPlayableListRep)
+
+        if process.get_current_state_id() != E_DOWNLOADER_MANAGER_STATE.PLAYABLE:
+            return
+
+        elements: list[SectionElement] = []
+        for raw in packet.section_list:
+            if isinstance(raw, SectionElement):
+                elements.append(raw)
+            elif isinstance(raw, dict):
+                elements.append(SectionElement(**raw))
+        container = SectionElementContainer(elements)
+        process.append_playable_file(packet.sensor_id, container)

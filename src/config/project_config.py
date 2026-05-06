@@ -10,27 +10,33 @@ class ProjectConfig(AppConfig):
         IMDG = "IMDG"
         REST = "REST"
         STREAM = "STREAM"
+        STORAGE = "STORAGE"
 
     class E_CATE_ELE_COMMON(IENUM):
-        PROJECT_NAME = "ProjectName"
-        CHANNEL_NAME = "ChannelName"
+        PROJECT_NAME = "PROJECT_NAME"
+        CHANNEL_NAME = "CHANNEL_NAME"
         pass
 
     class E_CATE_ELE_IMDG(IENUM):
-        SERVER_IP = "ServerIp"
-        SERVER_PORT = "ServerPort"
-        POOL_SIZE = "PoolSize"
-        SCHEMA_NAME = "SchemaName"
+        SERVER_IP = "SERVER_IP"
+        SERVER_PORT = "SERVER_PORT"
+        POOL_SIZE = "POOL_SIZE"
+        SCHEMA_NAME = "SCHEMA_NAME"
         pass
 
     class E_CATE_ELE_REST(IENUM):
-        BIND_IP = "BindIp"
-        BIND_PORT = "BindPort"
+        BIND_IP = "BIND_IP"
+        BIND_PORT = "BIND_PORT"
         pass
 
     class E_CATE_ELE_STREAM(IENUM):
-        STREAM_NAME = "StreamName"
-        GROUP_NAME = "GroupName"
+        STREAM_NAME = "STREAM_NAME"
+        GROUP_NAME = "GROUP_NAME"
+        pass
+
+    class E_CATE_ELE_STORAGE(IENUM):
+        ROOT = "ROOT"
+        PREFIX = "PREFIX"
         pass
 
     def __init__(self) -> None:
@@ -68,4 +74,11 @@ class ProjectConfig(AppConfig):
         )
         self.stream_group_name = self.get_config(
             ProjectConfig.E_CATE_TYPE.STREAM, ProjectConfig.E_CATE_ELE_STREAM.GROUP_NAME
+        )
+
+        self.storage_root = self.get_config(
+            ProjectConfig.E_CATE_TYPE.STORAGE, ProjectConfig.E_CATE_ELE_STORAGE.ROOT
+        )
+        self.storage_prefix = self.get_config(
+            ProjectConfig.E_CATE_TYPE.STORAGE, ProjectConfig.E_CATE_ELE_STORAGE.PREFIX
         )
