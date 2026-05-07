@@ -12,7 +12,10 @@ class AppProcess(QueueProcess[str]):
         self._app_name = app_name
 
     def _set_config(self) -> None:
-        AppLogger.set_config(ProjectConfig.DEFAULT_LOGGING_CONFIG_PATH, self.name)
+        AppLogger.set_config(
+            ProjectConfig.DEFAULT_LOGGING_CONFIG_PATH,
+            f"{ProjectConfig.LOGGER_BASE_NAME}.{self.name}",
+        )
         ProjectConfig.set_config(ProjectConfig.DEFAULT_CONFIG_PATH)
 
     def get_app_name(self) -> str:
