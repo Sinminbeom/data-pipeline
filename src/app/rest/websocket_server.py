@@ -117,8 +117,6 @@ class SocketIOServer(abWebSocketServer):
         )
 
     def on_init(self) -> None:
-        self.get_parent_process().on_register_handler(ProtocolMeta.get_receive_handler_container())
-
         @self.fastapi_app.on_event("startup")
         async def _capture_event_loop():
             # uvicorn이 띄운 asyncio loop을 캡처해두면 IMDG thread에서 emit 가능.
