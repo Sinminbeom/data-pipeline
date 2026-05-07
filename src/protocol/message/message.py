@@ -1,8 +1,8 @@
-import json
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from enum import IntEnum
 
 from define.define import E_COMMUNICATION_TYPE
+from protocol.serialization import DataclassSerializer
 
 
 class IMessage:
@@ -41,11 +41,8 @@ class abProtocolMessage(IMessage):
     response: ResponseInfo | None = None
 
     def to_json(self) -> str:
-        return json.dumps(asdict(self))
+        return DataclassSerializer.to_json(self)
 
     @classmethod
     def from_json(cls, json_string: str):
-        d = json.loads(json_string)
-        if d.get("response") is not None:
-            d["response"] = ResponseInfo(**d["response"])
-        return cls(**d)
+        return DataclassSerializer.from_json(cls, json_string)
