@@ -6,12 +6,8 @@ import socketio
 from fastapi import FastAPI
 import uvicorn
 
-from common.process.imdg_bus_process import IImdgBusProcess
 from common.process.queue_control_process import QueueControlProcess
-from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
-from protocol.message.message import IMessage
-from protocol.protocol_meta import ProtocolMeta, E_PROTOCOL_ID
-from protocol.protocol_owner import ProtocolOwner
+from protocol.protocol_meta import ProtocolMeta
 from protocol.protocol_wrapper import ProtocolWrapper
 
 
@@ -66,55 +62,13 @@ class abWebSocketServer(ABC):
 
 
 class SocketIOServer(abWebSocketServer):
+    """순수 ASGI server — 외부 socket.io 클라이언트의 진입점.
+
+    receive handler는 SocketIOProcess에 위치한다 (다른 카테고리와 일관).
+    """
+
     def __init__(self, _parents_process: QueueControlProcess, _bind_ip: str = "0.0.0.0", _bind_port: int = 9999):
         super().__init__(_parents_process, _bind_ip, _bind_port)
-
-    @staticmethod
-    def playable_list_request(
-        process: IImdgBusProcess,
-        wrapper: ProtocolWrapper,
-        packet: PDPlayableListReq,
-    ):
-        from process_category.enum_category import E_CATE
-
-
-        sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
-        receiver = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
-
-        message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PLAYABLE_LIST_REQ)(
-            sender,
-            receiver,
-            packet.vehicle_id,
-            packet.sensor_id_list,
-            packet.start_time,
-            packet.end_time,
-        )
-
-        envelope = ProtocolWrapper.get_protocol_wrapper(message).get_protocol_packet_message()
-        process.send_message_imdg(envelope)
-
-    @staticmethod
-    def playable_list_response(
-        process: IImdgBusProcess,
-        wrapper: ProtocolWrapper,
-        packet: IMessage,
-    ):
-        """MESSAGE_BRIDGE → REST_SERVER로 들어온 PD_PLAYABLE_LIST_REP를 socket.io로 broadcast."""
-        assert isinstance(packet, PDPlayableListRep)
-
-        # SocketIOProcess가 websocket_server를 들고 있다 (런타임 attr)
-        server: SocketIOServer | None = getattr(process, "websocket_server", None)
-        if server is None or server._loop is None:
-            print("[REST] websocket_server / asyncio loop 미초기화 — 응답 drop")
-            return
-
-        payload = packet.to_json()
-        # AsyncServer.emit은 coroutine. IMDG listener는 별도 thread이므로
-        # 메인 asyncio loop에 thread-safe하게 스케줄한다.
-        asyncio.run_coroutine_threadsafe(
-            server.sio.emit("message", payload),
-            server._loop,
-        )
 
     def on_init(self) -> None:
         @self.fastapi_app.on_event("startup")
@@ -122,7 +76,7 @@ class SocketIOServer(abWebSocketServer):
             # uvicorn이 띄운 asyncio loop을 캡처해두면 IMDG thread에서 emit 가능.
             self._loop = asyncio.get_running_loop()
 
-        # Socket.IO event
+        # Socket.IO event — 외부 클라이언트 → REST_SERVER 진입점
         @self.sio.on("message")
         async def request(sid: str, message: str):
             print("message : " + message)

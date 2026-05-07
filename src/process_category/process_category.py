@@ -15,6 +15,7 @@ class ProcessCategory(AppCategory):
         self.cate_reg_queue[E_CATE.MESSAGE_BRIDGE] = lambda: self.register_message_bridge()
         self.cate_reg_queue[E_CATE.DOWNLOADER] = lambda: self.register_downloader()
         self.cate_reg_queue[E_CATE.REST_SERVER] = lambda: self.register_rest_server()
+        self.cate_reg_queue[E_CATE.STREAMER] = lambda: self.register_streamer()
 
     def register_message_bridge(self) -> None:
         message_bridge = CategoryGroup()
@@ -142,6 +143,107 @@ class ProcessCategory(AppCategory):
         downloader.push(E_CATE.E_DOWNLOADER.CAMERA, camera)
 
         self.cate_queue[E_CATE.DOWNLOADER] = downloader
+
+    def register_streamer(self) -> None:
+        """STREAMER 카테고리 등록 — DOWNLOADER 와 동일 sensor 트리."""
+        streamer = CategoryGroup()
+
+        common = CategoryGroup()
+        lidar = CategoryGroup()
+        gnss = CategoryGroup()
+        camera = CategoryGroup()
+
+        common.push(
+            E_CATE.E_STREAMER.E_COMMON.E_STREAMER_MANAGER[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_COMMON.E_STREAMER_MANAGER[E_CATE_META_ELE.LAMBDA]),
+        )
+
+        lidar.push(
+            E_CATE.E_STREAMER.E_LIDAR.E_AT128_ROOF_FRONT[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_LIDAR.E_AT128_ROOF_FRONT[E_CATE_META_ELE.LAMBDA]),
+        )
+        lidar.push(
+            E_CATE.E_STREAMER.E_LIDAR.E_AT128_ROOF_RIGHT[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_LIDAR.E_AT128_ROOF_RIGHT[E_CATE_META_ELE.LAMBDA]),
+        )
+        lidar.push(
+            E_CATE.E_STREAMER.E_LIDAR.E_AT128_ROOF_REAR[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_LIDAR.E_AT128_ROOF_REAR[E_CATE_META_ELE.LAMBDA]),
+        )
+        lidar.push(
+            E_CATE.E_STREAMER.E_LIDAR.E_AT128_ROOF_LEFT[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_LIDAR.E_AT128_ROOF_LEFT[E_CATE_META_ELE.LAMBDA]),
+        )
+
+        lidar.push(
+            E_CATE.E_STREAMER.E_LIDAR.E_RSBP_BUMP_FRONT[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_LIDAR.E_RSBP_BUMP_FRONT[E_CATE_META_ELE.LAMBDA]),
+        )
+        lidar.push(
+            E_CATE.E_STREAMER.E_LIDAR.E_RSBP_BUMP_RIGHT[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_LIDAR.E_RSBP_BUMP_RIGHT[E_CATE_META_ELE.LAMBDA]),
+        )
+        lidar.push(
+            E_CATE.E_STREAMER.E_LIDAR.E_RSBP_BUMP_REAR[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_LIDAR.E_RSBP_BUMP_REAR[E_CATE_META_ELE.LAMBDA]),
+        )
+        lidar.push(
+            E_CATE.E_STREAMER.E_LIDAR.E_RSBP_BUMP_LEFT[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_LIDAR.E_RSBP_BUMP_LEFT[E_CATE_META_ELE.LAMBDA]),
+        )
+
+        gnss.push(
+            E_CATE.E_STREAMER.E_GNSS.E_GNSS[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_GNSS.E_GNSS[E_CATE_META_ELE.LAMBDA]),
+        )
+
+        camera.push(
+            E_CATE.E_STREAMER.E_CAMERA.E_AM20_FRONT_CENTER_RIGHT_DOWN[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_CAMERA.E_AM20_FRONT_CENTER_RIGHT_DOWN[E_CATE_META_ELE.LAMBDA]),
+        )
+        camera.push(
+            E_CATE.E_STREAMER.E_CAMERA.E_AM20_FRONT_RIGHT_REAR[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_CAMERA.E_AM20_FRONT_RIGHT_REAR[E_CATE_META_ELE.LAMBDA]),
+        )
+        camera.push(
+            E_CATE.E_STREAMER.E_CAMERA.E_AM20_REAR_CENTER_RIGHT[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_CAMERA.E_AM20_REAR_CENTER_RIGHT[E_CATE_META_ELE.LAMBDA]),
+        )
+        camera.push(
+            E_CATE.E_STREAMER.E_CAMERA.E_AM20_FRONT_LEFT_REAR[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_CAMERA.E_AM20_FRONT_LEFT_REAR[E_CATE_META_ELE.LAMBDA]),
+        )
+        camera.push(
+            E_CATE.E_STREAMER.E_CAMERA.E_AM20_REAR_RIGHT_EDGE[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_CAMERA.E_AM20_REAR_RIGHT_EDGE[E_CATE_META_ELE.LAMBDA]),
+        )
+        camera.push(
+            E_CATE.E_STREAMER.E_CAMERA.E_AM20_LEFT_REAR_EDGE[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_CAMERA.E_AM20_LEFT_REAR_EDGE[E_CATE_META_ELE.LAMBDA]),
+        )
+        camera.push(
+            E_CATE.E_STREAMER.E_CAMERA.E_AM20_FRONT_CENTER_LEFT_UP[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_CAMERA.E_AM20_FRONT_CENTER_LEFT_UP[E_CATE_META_ELE.LAMBDA]),
+        )
+        camera.push(
+            E_CATE.E_STREAMER.E_CAMERA.E_AM20_FRONT_CENTER_RIGHT_UP[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_CAMERA.E_AM20_FRONT_CENTER_RIGHT_UP[E_CATE_META_ELE.LAMBDA]),
+        )
+        camera.push(
+            E_CATE.E_STREAMER.E_CAMERA.E_AM20_FRONT_RIGHT_FRONT[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_CAMERA.E_AM20_FRONT_RIGHT_FRONT[E_CATE_META_ELE.LAMBDA]),
+        )
+        camera.push(
+            E_CATE.E_STREAMER.E_CAMERA.E_AM20_FRONT_LEFT_FRONT[E_CATE_META_ELE.NAME],
+            CategoryAction(E_CATE.E_STREAMER.E_CAMERA.E_AM20_FRONT_LEFT_FRONT[E_CATE_META_ELE.LAMBDA]),
+        )
+
+        streamer.push(E_CATE.E_STREAMER.COMMON, common)
+        streamer.push(E_CATE.E_STREAMER.LIDAR, lidar)
+        streamer.push(E_CATE.E_STREAMER.GNSS, gnss)
+        streamer.push(E_CATE.E_STREAMER.CAMERA, camera)
+
+        self.cate_queue[E_CATE.STREAMER] = streamer
 
     def register_rest_server(self) -> None:
         rest_server = CategoryGroup()
