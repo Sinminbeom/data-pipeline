@@ -1,7 +1,7 @@
-import json
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 
 from protocol.message.message import IMessage, E_PROTOCOL_MESSAGE_DIRECTION
+from protocol.serialization import DataclassSerializer
 
 
 @dataclass
@@ -13,11 +13,11 @@ class pdPacket(IMessage):
     message_direction: E_PROTOCOL_MESSAGE_DIRECTION = E_PROTOCOL_MESSAGE_DIRECTION.REQUEST
 
     def to_json(self) -> str:
-        return json.dumps(asdict(self))
+        return DataclassSerializer.to_json(self)
 
     @classmethod
     def from_json(cls, json_string: str):
-        return cls(**json.loads(json_string))
+        return DataclassSerializer.from_json(cls, json_string)
 
 
 @dataclass

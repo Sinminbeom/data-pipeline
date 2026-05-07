@@ -5,7 +5,7 @@ from typing import Optional
 from common.process.imdg_bus_process import ImdgBusProcess
 from protocol.message.message import IMessage
 from protocol.protocol_wrapper import ProtocolWrapper
-from protocol.section_element import SectionElement, SectionElementContainer
+from protocol.section_element import SectionElementContainer
 
 from app.downloader.process.manager.state import (
     E_DOWNLOADER_MANAGER_STATE,
@@ -92,21 +92,16 @@ class DownloaderManager(ImdgBusProcess):
                 process._state_component.change_state(E_DOWNLOADER_MANAGER_STATE.WAIT)
             return
 
-        # 2) COMPLEATE — packets에서 sensor별 sections 복원 + 1초 grid 펼치기 + N-way 교집합
+        # 2) COMPLEATE — packets에서 sensor별 sections를 1초 grid로 펼치기 + N-way 교집합.
+        # base 직렬화 helper가 from_json 시점에 section_list를 list[SectionElement]로 복원하므로
+        # 더이상 dict 분기 필요 없음.
         one_dim_lists: list[list[str]] = []
         sensor_ids: list[str] = []
         for packet in packets:
             assert isinstance(packet, InrPlayableListRep)
             sensor_ids.append(packet.sensor_id)
-
-            elements: list[SectionElement] = []
-            for raw in packet.section_list:
-                if isinstance(raw, SectionElement):
-                    elements.append(raw)
-                elif isinstance(raw, dict):
-                    elements.append(SectionElement(**raw))
             one_dim_lists.append(
-                SectionElementContainer(elements).convert_one_dimensional_list()
+                SectionElementContainer(packet.section_list).convert_one_dimensional_list()
             )
 
         playable_list = SectionElementContainer.calculate_intersection(*one_dim_lists)
