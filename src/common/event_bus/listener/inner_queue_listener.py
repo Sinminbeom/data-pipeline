@@ -3,13 +3,13 @@ from __future__ import annotations
 import time
 
 from common.event_bus.listener.listener import abListener
-from common.process.app_process import AppProcess
+from common.process.queue_control_process import QueueControlProcess
 from protocol.protocol_meta import ProtocolMeta
 from protocol.protocol_wrapper import ProtocolWrapper
 
 
-class InnerQueueListener(abListener[AppProcess]):
-    def __init__(self, parent_process: AppProcess) -> None:
+class InnerQueueListener(abListener[QueueControlProcess]):
+    def __init__(self, parent_process: QueueControlProcess) -> None:
         super().__init__(parent_process)
 
     def action(self) -> None:
@@ -22,6 +22,11 @@ class InnerQueueListener(abListener[AppProcess]):
         receiver = ProtocolWrapper.get_receiver_with_splits(splits)
 
         wrapper, packet = ProtocolWrapper.decode_protocol_wrapper_with_message_protocol(envelope)
+
+        # 1. 개별 핸들러 (응답마다 1회)
         ProtocolMeta.get_receive_handler(wrapper.protocol_id, receiver)(
             self._parent_process, wrapper, packet
         )
+
+        # 2. 그룹 매처 누적 — matcher 미활성화면 내부에서 no-op
+        self._parent_process.inr_matcher_on_response(wrapper, packet)

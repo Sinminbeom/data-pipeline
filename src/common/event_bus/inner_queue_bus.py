@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from common.event_bus.event_bus import abEventBus
 from common.event_bus.listener.inner_queue_listener import InnerQueueListener
-from common.process.app_process import AppProcess
+from common.process.queue_control_process import QueueControlProcess
 from protocol.message.message import ResponseInfo
 
 
-class InnerQueueBus(abEventBus[AppProcess]):
-    def __init__(self, _parent_process: AppProcess) -> None:
+class InnerQueueBus(abEventBus[QueueControlProcess]):
+    def __init__(self, _parent_process: QueueControlProcess) -> None:
         super().__init__(_parent_process)
         self.listener = InnerQueueListener(_parent_process)
 
@@ -31,6 +31,16 @@ class InnerQueueBus(abEventBus[AppProcess]):
         packet = factory(sender, receiver, *args)
         envelope = ProtocolWrapper.get_protocol_wrapper(packet).get_protocol_packet_message()
         self.send_message_inner_queue(receiver_process_name, envelope)
+
+    def broadcast_message_req_inner_queue(
+        self,
+        protocol_id,
+        receiver_process_names: list[str],
+        *args,
+    ) -> None:
+        """동일 REQ를 N개 receiver에 fan-out. 모든 args는 receiver별로 동일하게 전달."""
+        for name in receiver_process_names:
+            self.send_message_req_inner_queue(protocol_id, name, *args)
 
     def send_message_rep_inner_queue(
         self,

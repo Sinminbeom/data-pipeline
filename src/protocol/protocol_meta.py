@@ -6,6 +6,7 @@ from typing import Any, Callable, Dict, Mapping, ClassVar
 
 from python_library.process.process import abProcess
 
+from protocol.inr_protocol_matcher.inr_pair_state import E_PROTOCOL_PAIR_STATE
 from protocol.message.message import IMessage
 from protocol.protocol_wrapper import ProtocolWrapper
 
@@ -13,6 +14,7 @@ ReceiverKey = Any
 FactoryFn = Callable[..., IMessage]
 DecoderFn = Callable[[str], IMessage]
 HandlerFn = Callable[[abProcess, ProtocolWrapper, IMessage], Any]
+GroupHandlerFn = Callable[[abProcess, E_PROTOCOL_PAIR_STATE, list[IMessage]], Any]
 
 
 class E_PROTOCOL_ID(Enum):
@@ -29,7 +31,7 @@ class ProtocolEntry:
     factory: FactoryFn
     decoder: DecoderFn
     receive_handlers: Mapping[ReceiverKey, HandlerFn] = field(default_factory=dict)
-    inr_group_receive_handlers: Mapping[ReceiverKey, HandlerFn] = field(default_factory=dict)
+    inr_group_receive_handlers: Mapping[ReceiverKey, GroupHandlerFn] = field(default_factory=dict)
 
 
 class ProtocolMeta:
@@ -205,6 +207,11 @@ class ProtocolMeta:
                         DownloaderManager.playable_list_response(process, wrapper, packet)
                     )
                 },
+                inr_group_receive_handlers={
+                    E_CATE.DOWNLOADER: lambda process, pair_state, packets: (
+                        DownloaderManager.playable_list_group_response(process, pair_state, packets)
+                    )
+                },
             ),
         )
 
@@ -225,11 +232,6 @@ class ProtocolMeta:
     # Public API
     # ---------------------------
     @classmethod
-    def get_receive_handler_container(cls) -> Dict[E_PROTOCOL_ID, Mapping[ReceiverKey, HandlerFn]]:
-        cls.initialize()
-        return {pid: entry.receive_handlers for pid, entry in cls.table.items()}
-
-    @classmethod
     def get_receive_handler(cls, protocol_id: E_PROTOCOL_ID | str, receiver: ReceiverKey) -> HandlerFn:
         cls.initialize()
         pid = cls._to_enum(protocol_id)
@@ -238,10 +240,13 @@ class ProtocolMeta:
         return cls.table[pid].receive_handlers[app_name]
 
     @classmethod
-    def get_inr_group_receive_handler(cls, protocol_id: E_PROTOCOL_ID | str, receiver: ReceiverKey) -> HandlerFn:
+    def get_inr_group_receive_handler(
+        cls, protocol_id: E_PROTOCOL_ID | str, receiver: ReceiverKey
+    ) -> GroupHandlerFn | None:
+        """매칭되는 group handler가 없으면 None 반환 (기본은 dead — 폴링이 처리)."""
         cls.initialize()
         pid = cls._to_enum(protocol_id)
-        return cls.table[pid].inr_group_receive_handlers[receiver]
+        return cls.table[pid].inr_group_receive_handlers.get(receiver)
 
     @classmethod
     def get_protocol_factory(cls, protocol_id: E_PROTOCOL_ID | str) -> FactoryFn:
