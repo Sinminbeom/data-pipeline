@@ -3,8 +3,11 @@ from __future__ import annotations
 from typing import Optional
 
 from common.process.imdg_bus_process import ImdgBusProcess
+from protocol.inr_protocol_matcher.inr_pair_state import E_PROTOCOL_PAIR_STATE
+from protocol.message.imdg.play import PlayReq, PlayRep
+from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
 from protocol.message.message import IMessage
-from protocol.protocol_wrapper import ProtocolWrapper
+from protocol.message.process.play import InrPlayRep
 from protocol.section_element import SectionElementContainer
 
 from app.downloader.process.manager.state import (
@@ -36,15 +39,14 @@ class DownloaderManager(ImdgBusProcess):
         assert isinstance(current, E_DOWNLOADER_MANAGER_STATE)
         return current
 
-    @staticmethod
-    def playable_list_request(process: DownloaderManager, wrapper: ProtocolWrapper, packet: IMessage):
+    def handle_playable_list_request(self, packet: PlayableListReq) -> None:
         from process_category.enum_category import E_CATE
         from protocol.protocol_meta import E_PROTOCOL_ID
         from protocol.protocol_owner import ProtocolOwner
         from protocol.protocol_code import E_CODE, make_response_info
 
-        if process.get_current_state_id() != E_DOWNLOADER_MANAGER_STATE.WAIT:
-            process.send_message_rep_imdg(
+        if self.get_current_state_id() != E_DOWNLOADER_MANAGER_STATE.WAIT:
+            self.send_message_rep_imdg(
                 E_PROTOCOL_ID.PLAYABLE_LIST_REP,
                 ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE),
                 None,
@@ -53,17 +55,14 @@ class DownloaderManager(ImdgBusProcess):
             )
             return
 
-        if process._state_component is not None:
-            process._state_component.change_state(E_DOWNLOADER_MANAGER_STATE.PLAYABLE, state_param_dto=packet)
+        if self._state_component is not None:
+            self._state_component.change_state(E_DOWNLOADER_MANAGER_STATE.PLAYABLE, state_param_dto=packet)
 
-    @staticmethod
-    def playable_list_response(process: DownloaderManager, wrapper: ProtocolWrapper, packet: IMessage):
-        # 매처 경로(playable_list_group_response)가 모든 후처리를 담당하므로 개별 핸들러는 no-op.
-        # listener가 receive_handlers를 항상 dispatch하므로 빈 stub은 유지 (KeyError 방지).
+    def handle_playable_list_response(self, packet: PlayableListRep) -> None:
+        # 매처 경로(handle_playable_list_group_response)가 후처리 담당 — 개별 handler는 no-op.
         pass
 
-    @staticmethod
-    def playable_list_group_response(process, pair_state, packets):
+    def handle_playable_list_group_response(self, pair_state: E_PROTOCOL_PAIR_STATE, packets: list[IMessage]) -> None:
         """모든 모듈의 INR_PLAYABLE_LIST_REP 도착 시 매처 인프라가 발화.
 
         교집합 계산 + PLAYABLE_LIST_REP 송신 + DOWNLOAD_READY 전이를 한 곳에서 수행.
@@ -72,7 +71,6 @@ class DownloaderManager(ImdgBusProcess):
           - change_state → 다음 메인 loop frame에 적용되는 reservation
         """
         from process_category.enum_category import E_CATE
-        from protocol.inr_protocol_matcher.inr_pair_state import E_PROTOCOL_PAIR_STATE
         from protocol.message.process.playable_list import InrPlayableListRep
         from protocol.protocol_code import E_CODE, make_response_info
         from protocol.protocol_meta import E_PROTOCOL_ID
@@ -84,12 +82,12 @@ class DownloaderManager(ImdgBusProcess):
 
         # 1) ERROR — INVALID_REQUEST 응답 후 WAIT 복귀
         if pair_state == E_PROTOCOL_PAIR_STATE.ERROR:
-            process.send_message_rep_imdg(
+            self.send_message_rep_imdg(
                 E_PROTOCOL_ID.PLAYABLE_LIST_REP, bridge, None, None,
                 response=make_response_info(E_CODE.INVALID_REQUEST, "module error"),
             )
-            if process._state_component is not None:
-                process._state_component.change_state(E_DOWNLOADER_MANAGER_STATE.WAIT)
+            if self._state_component is not None:
+                self._state_component.change_state(E_DOWNLOADER_MANAGER_STATE.WAIT)
             return
 
         # 2) COMPLEATE — packets에서 sensor별 sections를 1초 grid로 펼치기 + N-way 교집합.
@@ -107,7 +105,7 @@ class DownloaderManager(ImdgBusProcess):
         playable_list = SectionElementContainer.calculate_intersection(*one_dim_lists)
 
         # 3) PLAYABLE_LIST_REP 송신
-        process.send_message_rep_imdg(
+        self.send_message_rep_imdg(
             E_PROTOCOL_ID.PLAYABLE_LIST_REP,
             bridge,
             sensor_ids,
@@ -116,5 +114,11 @@ class DownloaderManager(ImdgBusProcess):
         )
 
         # 4) DOWNLOAD_READY 전이 (reservation — 다음 메인 frame에 적용됨)
-        if process._state_component is not None:
-            process._state_component.change_state(E_DOWNLOADER_MANAGER_STATE.DOWNLOAD_READY)
+        if self._state_component is not None:
+            self._state_component.change_state(E_DOWNLOADER_MANAGER_STATE.DOWNLOAD_READY)
+
+    def handle_play_request(self, packet: PlayReq) -> None:
+        raise NotImplementedError
+
+    def handle_play_response(self, packet: InrPlayRep) -> None:
+        raise NotImplementedError

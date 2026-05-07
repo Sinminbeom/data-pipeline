@@ -25,6 +25,13 @@ class E_PROTOCOL_ID(Enum):
     INR_PLAYABLE_LIST_REQ = "-100"
     INR_PLAYABLE_LIST_REP = "-101"
 
+    PD_PLAY_REQ = "PD_200"
+    PD_PLAY_REP = "PD_201"
+    PLAY_REQ = "200"
+    PLAY_REP = "201"
+    INR_PLAY_REQ = "-200"
+    INR_PLAY_REP = "-201"
+
 
 @dataclass(frozen=True)
 class ProtocolEntry:
@@ -69,15 +76,17 @@ class ProtocolMeta:
     @classmethod
     def _register_protocols(cls) -> None:
         from process_category.enum_category import E_CATE
-        from app.rest.websocket_server import SocketIOServer
-        from app.downloader.process.manager.manager import DownloaderManager
-        from app.downloader.process.module.module import DownloaderModule
-        from app.message_bridge.process.message_bridge_process import MessageBridgeProcess
+        from protocol.message.external.ui.play import PDPlayReq, PDPlayRep
         from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
+        from protocol.message.imdg.play import PlayReq, PlayRep
         from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
+        from protocol.message.process.play import InrPlayReq, InrPlayRep
         from protocol.message.process.playable_list import InrPlayableListReq, InrPlayableListRep
+        from protocol.protocol_handler import ProtocolHandler
 
-        # PD (외부 통신, raw dataclass)
+        # ===== PlayableList 3계층 =====
+
+        # PD_PLAYABLE_LIST_REQ → REST_SERVER
         cls._register(
             E_PROTOCOL_ID.PD_PLAYABLE_LIST_REQ,
             ProtocolEntry(
@@ -92,14 +101,12 @@ class ProtocolMeta:
                 ),
                 decoder=PDPlayableListReq.from_json,
                 receive_handlers={
-                    E_CATE.REST_SERVER: lambda process, wrapper, packet: SocketIOServer.playable_list_request(
-                        process, wrapper, packet
-                    ),
+                    E_CATE.REST_SERVER: ProtocolHandler.pd_playable_list_request,
                 },
             ),
         )
 
-        # PD (외부 통신, RESPONSE) — REST_SERVER가 IMDG로 받아 socket.io broadcast
+        # PD_PLAYABLE_LIST_REP → REST_SERVER (socket.io broadcast)
         cls._register(
             E_PROTOCOL_ID.PD_PLAYABLE_LIST_REP,
             ProtocolEntry(
@@ -115,14 +122,12 @@ class ProtocolMeta:
                 ),
                 decoder=PDPlayableListRep.from_json,
                 receive_handlers={
-                    E_CATE.REST_SERVER: lambda process, wrapper, packet: SocketIOServer.playable_list_response(
-                        process, wrapper, packet
-                    ),
+                    E_CATE.REST_SERVER: ProtocolHandler.pd_playable_list_response,
                 },
             ),
         )
 
-        # IMDG (앱 간 통신)
+        # PLAYABLE_LIST_REQ → MESSAGE_BRIDGE / DOWNLOADER
         cls._register(
             E_PROTOCOL_ID.PLAYABLE_LIST_REQ,
             ProtocolEntry(
@@ -137,17 +142,13 @@ class ProtocolMeta:
                 ),
                 decoder=PlayableListReq.from_json,
                 receive_handlers={
-                    E_CATE.MESSAGE_BRIDGE: lambda process, wrapper, packet: (
-                        MessageBridgeProcess.playable_list_request(process, wrapper, packet)
-                    ),
-                    E_CATE.DOWNLOADER: lambda process, wrapper, packet: (
-                        DownloaderManager.playable_list_request(process, wrapper, packet)
-                    ),
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.playable_list_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.playable_list_request,
                 },
             ),
         )
 
-        # IMDG (앱 간 통신, RESPONSE)
+        # PLAYABLE_LIST_REP → MESSAGE_BRIDGE
         cls._register(
             E_PROTOCOL_ID.PLAYABLE_LIST_REP,
             ProtocolEntry(
@@ -161,14 +162,12 @@ class ProtocolMeta:
                 ),
                 decoder=PlayableListRep.from_json,
                 receive_handlers={
-                    E_CATE.MESSAGE_BRIDGE: lambda process, wrapper, packet: (
-                        MessageBridgeProcess.playable_list_response(process, wrapper, packet)
-                    ),
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.playable_list_response,
                 },
             ),
         )
 
-        # PROCESS (앱 내 통신)
+        # INR_PLAYABLE_LIST_REQ → DOWNLOADER (Module)
         cls._register(
             E_PROTOCOL_ID.INR_PLAYABLE_LIST_REQ,
             ProtocolEntry(
@@ -182,14 +181,12 @@ class ProtocolMeta:
                 ),
                 decoder=InrPlayableListReq.from_json,
                 receive_handlers={
-                    E_CATE.DOWNLOADER: lambda process, wrapper, packet: (
-                        DownloaderModule.playable_list_request(process, wrapper, packet)
-                    )
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_playable_list_request,
                 },
             ),
         )
 
-        # PROCESS (앱 내 통신, RESPONSE)
+        # INR_PLAYABLE_LIST_REP → DOWNLOADER (Manager) + group
         cls._register(
             E_PROTOCOL_ID.INR_PLAYABLE_LIST_REP,
             ProtocolEntry(
@@ -203,14 +200,134 @@ class ProtocolMeta:
                 ),
                 decoder=InrPlayableListRep.from_json,
                 receive_handlers={
-                    E_CATE.DOWNLOADER: lambda process, wrapper, packet: (
-                        DownloaderManager.playable_list_response(process, wrapper, packet)
-                    )
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_playable_list_response,
                 },
                 inr_group_receive_handlers={
-                    E_CATE.DOWNLOADER: lambda process, pair_state, packets: (
-                        DownloaderManager.playable_list_group_response(process, pair_state, packets)
-                    )
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_playable_list_response_group,
+                },
+            ),
+        )
+
+        # ===== Play 3계층 =====
+
+        # PD_PLAY_REQ → REST_SERVER
+        cls._register(
+            E_PROTOCOL_ID.PD_PLAY_REQ,
+            ProtocolEntry(
+                factory=lambda sender, receiver, section_id, vehicle_id, sensor_id_list, start_time, end_time: PDPlayReq(
+                    protocol_id=E_PROTOCOL_ID.PD_PLAY_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                    section_id=section_id,
+                    vehicle_id=vehicle_id,
+                    sensor_id_list=sensor_id_list if sensor_id_list is not None else [],
+                    start_time=start_time,
+                    end_time=end_time,
+                ),
+                decoder=PDPlayReq.from_json,
+                receive_handlers={
+                    E_CATE.REST_SERVER: ProtocolHandler.pd_play_request,
+                },
+            ),
+        )
+
+        # PD_PLAY_REP → REST_SERVER (socket.io broadcast)
+        cls._register(
+            E_PROTOCOL_ID.PD_PLAY_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, code, code_nm, reason: PDPlayRep(
+                    protocol_id=E_PROTOCOL_ID.PD_PLAY_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    code=code,
+                    code_nm=code_nm,
+                    reason=reason,
+                ),
+                decoder=PDPlayRep.from_json,
+                receive_handlers={
+                    E_CATE.REST_SERVER: ProtocolHandler.pd_play_response,
+                },
+            ),
+        )
+
+        # PLAY_REQ → BRIDGE / STREAMER / DOWNLOADER (replayer broadcast 패턴)
+        cls._register(
+            E_PROTOCOL_ID.PLAY_REQ,
+            ProtocolEntry(
+                factory=lambda sender, receiver, section_id, vehicle_id, sensor_id_list, start_time, end_time: PlayReq(
+                    protocol_id=E_PROTOCOL_ID.PLAY_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                    section_id=section_id,
+                    vehicle_id=vehicle_id,
+                    sensor_id_list=sensor_id_list if sensor_id_list is not None else [],
+                    start_time=start_time,
+                    end_time=end_time,
+                ),
+                decoder=PlayReq.from_json,
+                receive_handlers={
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.play_request,
+                    E_CATE.STREAMER: ProtocolHandler.play_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.play_request,
+                },
+            ),
+        )
+
+        # PLAY_REP → MESSAGE_BRIDGE
+        cls._register(
+            E_PROTOCOL_ID.PLAY_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, response=None: PlayRep(
+                    protocol_id=E_PROTOCOL_ID.PLAY_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    response=response,
+                ),
+                decoder=PlayRep.from_json,
+                receive_handlers={
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.play_response,
+                },
+            ),
+        )
+
+        # INR_PLAY_REQ → STREAMER (Module) / DOWNLOADER (Module)
+        cls._register(
+            E_PROTOCOL_ID.INR_PLAY_REQ,
+            ProtocolEntry(
+                factory=lambda sender, receiver, section_id, vehicle_id, start_time, end_time: InrPlayReq(
+                    protocol_id=E_PROTOCOL_ID.INR_PLAY_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                    section_id=section_id,
+                    vehicle_id=vehicle_id,
+                    start_time=start_time,
+                    end_time=end_time,
+                ),
+                decoder=InrPlayReq.from_json,
+                receive_handlers={
+                    E_CATE.STREAMER: ProtocolHandler.inr_play_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_play_request,
+                },
+            ),
+        )
+
+        # INR_PLAY_REP → STREAMER (Manager) / DOWNLOADER (Manager) + group
+        cls._register(
+            E_PROTOCOL_ID.INR_PLAY_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, response=None: InrPlayRep(
+                    protocol_id=E_PROTOCOL_ID.INR_PLAY_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    response=response,
+                ),
+                decoder=InrPlayRep.from_json,
+                receive_handlers={
+                    E_CATE.STREAMER: ProtocolHandler.inr_play_response,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_play_response,
+                },
+                inr_group_receive_handlers={
+                    E_CATE.STREAMER: ProtocolHandler.inr_play_response_group,
                 },
             ),
         )
