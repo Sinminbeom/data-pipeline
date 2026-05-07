@@ -1,7 +1,7 @@
 from enum import IntEnum
 
 from define.define import E_COMMUNICATION_TYPE
-from protocol.message.message import IMessage
+from protocol.message.message import E_PROTOCOL_MESSAGE_DIRECTION, IMessage
 from utils.string_builder import StringBuilder
 from utils.time_string_fit import TimeStringFit, E_TIMEFORMAT
 
@@ -32,6 +32,14 @@ class ProtocolWrapper:
         self.receiver = protocol_message.receiver
         self.protocol_message = protocol_message
         self.message_id = message_id
+
+    def summary(self, packet: IMessage | None = None) -> str:
+        direction = E_PROTOCOL_MESSAGE_DIRECTION(int(self.message_direction)).name
+        base = f"proto={self.protocol_id} dir={direction} {self.sender}->{self.receiver}"
+        response = getattr(packet, "response", None) if packet is not None else None
+        if response is not None:
+            base += f" code={response.code}"
+        return base
 
     def get_protocol_packet_message(self) -> str:
         sb = StringBuilder()

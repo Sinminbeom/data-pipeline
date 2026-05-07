@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import time
 
+from python_library.logger.app_logger import AppLogger
 from redis.client import PubSub
 
 from common.event_bus.listener.listener import abListener
@@ -27,6 +28,11 @@ class ImdgListener(abListener[ImdgBusProcess]):
                     continue
 
                 wrapper, packet = ProtocolWrapper.decode_protocol_wrapper_with_message_protocol(envelope)
+
+                log = AppLogger.instance()
+                log.info(f"[IMDG RECV] {wrapper.summary(packet)}")
+                log.debug(f"[IMDG RECV payload] {envelope}")
+
                 ProtocolMeta.get_receive_handler(wrapper.protocol_id, receiver)(
                     self._parent_process, wrapper, packet
                 )

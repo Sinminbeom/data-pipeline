@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import time
 
+from python_library.logger.app_logger import AppLogger
+
 from common.event_bus.listener.listener import abListener
 from common.process.queue_control_process import QueueControlProcess
 from protocol.protocol_meta import ProtocolMeta
@@ -22,6 +24,10 @@ class InnerQueueListener(abListener[QueueControlProcess]):
         receiver = ProtocolWrapper.get_receiver_with_splits(splits)
 
         wrapper, packet = ProtocolWrapper.decode_protocol_wrapper_with_message_protocol(envelope)
+
+        log = AppLogger.instance()
+        log.info(f"[IQ RECV] {wrapper.summary(packet)}")
+        log.debug(f"[IQ RECV payload] {envelope}")
 
         # 1. 개별 핸들러 (응답마다 1회)
         ProtocolMeta.get_receive_handler(wrapper.protocol_id, receiver)(
