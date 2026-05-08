@@ -140,3 +140,9 @@ class DownloaderManager(ImdgBusProcess):
 
     def handle_close_response(self, packet) -> None:
         raise NotImplementedError
+
+    def handle_stop_request(self, packet) -> None:
+        raise NotImplementedError
+
+    def handle_stop_response(self, packet) -> None:
+        raise NotImplementedError

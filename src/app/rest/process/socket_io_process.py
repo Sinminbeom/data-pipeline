@@ -10,6 +10,7 @@ from protocol.message.external.ui.pause import PDPauseReq, PDPauseRep
 from protocol.message.external.ui.play import PDPlayReq, PDPlayRep
 from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
 from protocol.message.external.ui.seek import PDSeekReq, PDSeekRep
+from protocol.message.external.ui.stop import PDStopReq, PDStopRep
 from protocol.message.message import IMessage
 from protocol.protocol_meta import E_PROTOCOL_ID, ProtocolMeta
 from protocol.protocol_owner import ProtocolOwner
@@ -139,4 +140,22 @@ class SocketIOProcess(ImdgBusProcess):
 
     def handle_close_response(self, packet: PDCloseRep) -> None:
         """PD_CLOSE_REP를 socket.io로 broadcast."""
+        self.broadcast_to_clients(packet)
+
+    def handle_stop_request(self, packet: PDStopReq) -> None:
+        from process_category.enum_category import E_CATE
+
+        sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
+        receiver = ProtocolOwner.build(E_CATE.STREAMER, E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
+
+        message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.STOP_REQ)(
+            sender,
+            receiver,
+        )
+
+        envelope = ProtocolWrapper.get_protocol_wrapper(message).get_protocol_packet_message()
+        self.send_message_imdg(envelope)
+
+    def handle_stop_response(self, packet: PDStopRep) -> None:
+        """PD_STOP_REP를 socket.io로 broadcast."""
         self.broadcast_to_clients(packet)

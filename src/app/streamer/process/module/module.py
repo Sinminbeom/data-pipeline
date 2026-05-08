@@ -7,6 +7,7 @@ from protocol.message.process.close import InrCloseReq
 from protocol.message.process.pause import InrPauseReq
 from protocol.message.process.play import InrPlayReq
 from protocol.message.process.seek import InrSeekReq
+from protocol.message.process.stop import InrStopReq
 
 from app.streamer.process.module.state import (
     E_STREAMER_MODULE_STATE,
@@ -78,5 +79,13 @@ class StreamerModule(QueueControlProcess):
         if self._state_component is not None:
             self._state_component.change_state(
                 E_STREAMER_MODULE_STATE.CLOSE,
+                state_param_dto=packet,
+            )
+
+    def handle_stop_request(self, packet: InrStopReq) -> None:
+        # placeholder — 실제 GStreamer stop 흐름 미이식. 어떤 state든 일단 STOP 진입 후 즉시 OK.
+        if self._state_component is not None:
+            self._state_component.change_state(
+                E_STREAMER_MODULE_STATE.STOP,
                 state_param_dto=packet,
             )

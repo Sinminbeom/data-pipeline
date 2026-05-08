@@ -7,3 +7,4 @@ class E_STREAMER_MODULE_STATE(IntEnum):
     PAUSE = 2
     SEEK = 3
     CLOSE = 4
+    STOP = 5
