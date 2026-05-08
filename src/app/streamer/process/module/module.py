@@ -5,6 +5,7 @@ from typing import Optional
 from common.process.queue_control_process import QueueControlProcess
 from protocol.message.process.pause import InrPauseReq
 from protocol.message.process.play import InrPlayReq
+from protocol.message.process.seek import InrSeekReq
 
 from app.streamer.process.module.state import (
     E_STREAMER_MODULE_STATE,
@@ -60,5 +61,13 @@ class StreamerModule(QueueControlProcess):
         if self._state_component is not None:
             self._state_component.change_state(
                 E_STREAMER_MODULE_STATE.PAUSE,
+                state_param_dto=packet,
+            )
+
+    def handle_seek_request(self, packet: InrSeekReq) -> None:
+        # placeholder — 실제 GStreamer seek 흐름 미이식. 어떤 state든 일단 SEEK 진입 후 즉시 OK.
+        if self._state_component is not None:
+            self._state_component.change_state(
+                E_STREAMER_MODULE_STATE.SEEK,
                 state_param_dto=packet,
             )
