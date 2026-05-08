@@ -1,5 +1,6 @@
 from python_library.state import StateMap
 
+from app.streamer.process.module.state.close import CloseState
 from app.streamer.process.module.state.pause import PauseState
 from app.streamer.process.module.state.play import PlayState
 from app.streamer.process.module.state.seek import SeekState
@@ -14,5 +15,6 @@ def build_state_map() -> StateMap:
         E_STREAMER_MODULE_STATE.PLAY: PlayState(state_map, E_STREAMER_MODULE_STATE.PLAY),
         E_STREAMER_MODULE_STATE.PAUSE: PauseState(state_map, E_STREAMER_MODULE_STATE.PAUSE),
         E_STREAMER_MODULE_STATE.SEEK: SeekState(state_map, E_STREAMER_MODULE_STATE.SEEK),
+        E_STREAMER_MODULE_STATE.CLOSE: CloseState(state_map, E_STREAMER_MODULE_STATE.CLOSE),
     }
     return state_map

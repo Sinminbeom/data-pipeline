@@ -46,6 +46,13 @@ class E_PROTOCOL_ID(Enum):
     INR_SEEK_REQ = "-500"
     INR_SEEK_REP = "-501"
 
+    PD_CLOSE_REQ = "PD_300"
+    PD_CLOSE_REP = "PD_301"
+    CLOSE_REQ = "300"
+    CLOSE_REP = "301"
+    INR_CLOSE_REQ = "-300"
+    INR_CLOSE_REP = "-301"
+
 
 @dataclass(frozen=True)
 class ProtocolEntry:
@@ -90,14 +97,17 @@ class ProtocolMeta:
     @classmethod
     def _register_protocols(cls) -> None:
         from process_category.enum_category import E_CATE
+        from protocol.message.external.ui.close import PDCloseReq, PDCloseRep
         from protocol.message.external.ui.pause import PDPauseReq, PDPauseRep
         from protocol.message.external.ui.play import PDPlayReq, PDPlayRep
         from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
         from protocol.message.external.ui.seek import PDSeekReq, PDSeekRep
+        from protocol.message.imdg.close import CloseReq, CloseRep
         from protocol.message.imdg.pause import PauseReq, PauseRep
         from protocol.message.imdg.play import PlayReq, PlayRep
         from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
         from protocol.message.imdg.seek import SeekReq, SeekRep
+        from protocol.message.process.close import InrCloseReq, InrCloseRep
         from protocol.message.process.pause import InrPauseReq, InrPauseRep
         from protocol.message.process.play import InrPlayReq, InrPlayRep
         from protocol.message.process.playable_list import InrPlayableListReq, InrPlayableListRep
@@ -571,6 +581,116 @@ class ProtocolMeta:
                 },
                 inr_group_receive_handlers={
                     E_CATE.STREAMER: ProtocolHandler.inr_seek_response_group,
+                },
+            ),
+        )
+
+        # ===== Close 3계층 =====
+
+        # PD_CLOSE_REQ → REST_SERVER
+        cls._register(
+            E_PROTOCOL_ID.PD_CLOSE_REQ,
+            ProtocolEntry(
+                factory=lambda sender, receiver: PDCloseReq(
+                    protocol_id=E_PROTOCOL_ID.PD_CLOSE_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                ),
+                decoder=PDCloseReq.from_json,
+                receive_handlers={
+                    E_CATE.REST_SERVER: ProtocolHandler.pd_close_request,
+                },
+            ),
+        )
+
+        # PD_CLOSE_REP → REST_SERVER (socket.io broadcast)
+        cls._register(
+            E_PROTOCOL_ID.PD_CLOSE_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, code, code_nm, reason: PDCloseRep(
+                    protocol_id=E_PROTOCOL_ID.PD_CLOSE_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    code=code,
+                    code_nm=code_nm,
+                    reason=reason,
+                ),
+                decoder=PDCloseRep.from_json,
+                receive_handlers={
+                    E_CATE.REST_SERVER: ProtocolHandler.pd_close_response,
+                },
+            ),
+        )
+
+        # CLOSE_REQ → BRIDGE / STREAMER / DOWNLOADER
+        cls._register(
+            E_PROTOCOL_ID.CLOSE_REQ,
+            ProtocolEntry(
+                factory=lambda sender, receiver: CloseReq(
+                    protocol_id=E_PROTOCOL_ID.CLOSE_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                ),
+                decoder=CloseReq.from_json,
+                receive_handlers={
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.close_request,
+                    E_CATE.STREAMER: ProtocolHandler.close_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.close_request,
+                },
+            ),
+        )
+
+        # CLOSE_REP → MESSAGE_BRIDGE
+        cls._register(
+            E_PROTOCOL_ID.CLOSE_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, response=None: CloseRep(
+                    protocol_id=E_PROTOCOL_ID.CLOSE_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    response=response,
+                ),
+                decoder=CloseRep.from_json,
+                receive_handlers={
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.close_response,
+                },
+            ),
+        )
+
+        # INR_CLOSE_REQ → STREAMER (Module) / DOWNLOADER (Module)
+        cls._register(
+            E_PROTOCOL_ID.INR_CLOSE_REQ,
+            ProtocolEntry(
+                factory=lambda sender, receiver: InrCloseReq(
+                    protocol_id=E_PROTOCOL_ID.INR_CLOSE_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                ),
+                decoder=InrCloseReq.from_json,
+                receive_handlers={
+                    E_CATE.STREAMER: ProtocolHandler.inr_close_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_close_request,
+                },
+            ),
+        )
+
+        # INR_CLOSE_REP → STREAMER (Manager) / DOWNLOADER (Manager) + group
+        cls._register(
+            E_PROTOCOL_ID.INR_CLOSE_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, response=None: InrCloseRep(
+                    protocol_id=E_PROTOCOL_ID.INR_CLOSE_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    response=response,
+                ),
+                decoder=InrCloseRep.from_json,
+                receive_handlers={
+                    E_CATE.STREAMER: ProtocolHandler.inr_close_response,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_close_response,
+                },
+                inr_group_receive_handlers={
+                    E_CATE.STREAMER: ProtocolHandler.inr_close_response_group,
                 },
             ),
         )
