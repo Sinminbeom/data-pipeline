@@ -53,6 +53,13 @@ class E_PROTOCOL_ID(Enum):
     INR_CLOSE_REQ = "-300"
     INR_CLOSE_REP = "-301"
 
+    PD_STOP_REQ = "PD_600"
+    PD_STOP_REP = "PD_601"
+    STOP_REQ = "600"
+    STOP_REP = "601"
+    INR_STOP_REQ = "-600"
+    INR_STOP_REP = "-601"
+
 
 @dataclass(frozen=True)
 class ProtocolEntry:
@@ -102,16 +109,19 @@ class ProtocolMeta:
         from protocol.message.external.ui.play import PDPlayReq, PDPlayRep
         from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
         from protocol.message.external.ui.seek import PDSeekReq, PDSeekRep
+        from protocol.message.external.ui.stop import PDStopReq, PDStopRep
         from protocol.message.imdg.close import CloseReq, CloseRep
         from protocol.message.imdg.pause import PauseReq, PauseRep
         from protocol.message.imdg.play import PlayReq, PlayRep
         from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
         from protocol.message.imdg.seek import SeekReq, SeekRep
+        from protocol.message.imdg.stop import StopReq, StopRep
         from protocol.message.process.close import InrCloseReq, InrCloseRep
         from protocol.message.process.pause import InrPauseReq, InrPauseRep
         from protocol.message.process.play import InrPlayReq, InrPlayRep
         from protocol.message.process.playable_list import InrPlayableListReq, InrPlayableListRep
         from protocol.message.process.seek import InrSeekReq, InrSeekRep
+        from protocol.message.process.stop import InrStopReq, InrStopRep
         from protocol.protocol_handler import ProtocolHandler
 
         # ===== PlayableList 3계층 =====
@@ -691,6 +701,116 @@ class ProtocolMeta:
                 },
                 inr_group_receive_handlers={
                     E_CATE.STREAMER: ProtocolHandler.inr_close_response_group,
+                },
+            ),
+        )
+
+        # ===== Stop 3계층 =====
+
+        # PD_STOP_REQ → REST_SERVER
+        cls._register(
+            E_PROTOCOL_ID.PD_STOP_REQ,
+            ProtocolEntry(
+                factory=lambda sender, receiver: PDStopReq(
+                    protocol_id=E_PROTOCOL_ID.PD_STOP_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                ),
+                decoder=PDStopReq.from_json,
+                receive_handlers={
+                    E_CATE.REST_SERVER: ProtocolHandler.pd_stop_request,
+                },
+            ),
+        )
+
+        # PD_STOP_REP → REST_SERVER (socket.io broadcast)
+        cls._register(
+            E_PROTOCOL_ID.PD_STOP_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, code, code_nm, reason: PDStopRep(
+                    protocol_id=E_PROTOCOL_ID.PD_STOP_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    code=code,
+                    code_nm=code_nm,
+                    reason=reason,
+                ),
+                decoder=PDStopRep.from_json,
+                receive_handlers={
+                    E_CATE.REST_SERVER: ProtocolHandler.pd_stop_response,
+                },
+            ),
+        )
+
+        # STOP_REQ → BRIDGE / STREAMER / DOWNLOADER
+        cls._register(
+            E_PROTOCOL_ID.STOP_REQ,
+            ProtocolEntry(
+                factory=lambda sender, receiver: StopReq(
+                    protocol_id=E_PROTOCOL_ID.STOP_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                ),
+                decoder=StopReq.from_json,
+                receive_handlers={
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.stop_request,
+                    E_CATE.STREAMER: ProtocolHandler.stop_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.stop_request,
+                },
+            ),
+        )
+
+        # STOP_REP → MESSAGE_BRIDGE
+        cls._register(
+            E_PROTOCOL_ID.STOP_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, response=None: StopRep(
+                    protocol_id=E_PROTOCOL_ID.STOP_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    response=response,
+                ),
+                decoder=StopRep.from_json,
+                receive_handlers={
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.stop_response,
+                },
+            ),
+        )
+
+        # INR_STOP_REQ → STREAMER (Module) / DOWNLOADER (Module)
+        cls._register(
+            E_PROTOCOL_ID.INR_STOP_REQ,
+            ProtocolEntry(
+                factory=lambda sender, receiver: InrStopReq(
+                    protocol_id=E_PROTOCOL_ID.INR_STOP_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                ),
+                decoder=InrStopReq.from_json,
+                receive_handlers={
+                    E_CATE.STREAMER: ProtocolHandler.inr_stop_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_stop_request,
+                },
+            ),
+        )
+
+        # INR_STOP_REP → STREAMER (Manager) / DOWNLOADER (Manager) + group
+        cls._register(
+            E_PROTOCOL_ID.INR_STOP_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, response=None: InrStopRep(
+                    protocol_id=E_PROTOCOL_ID.INR_STOP_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    response=response,
+                ),
+                decoder=InrStopRep.from_json,
+                receive_handlers={
+                    E_CATE.STREAMER: ProtocolHandler.inr_stop_response,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_stop_response,
+                },
+                inr_group_receive_handlers={
+                    E_CATE.STREAMER: ProtocolHandler.inr_stop_response_group,
                 },
             ),
         )

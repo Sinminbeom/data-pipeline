@@ -14,17 +14,20 @@ from protocol.message.external.ui.pause import PDPauseReq, PDPauseRep
 from protocol.message.external.ui.play import PDPlayReq, PDPlayRep
 from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
 from protocol.message.external.ui.seek import PDSeekReq, PDSeekRep
+from protocol.message.external.ui.stop import PDStopReq, PDStopRep
 from protocol.message.imdg.close import CloseReq, CloseRep
 from protocol.message.imdg.pause import PauseReq, PauseRep
 from protocol.message.imdg.play import PlayReq, PlayRep
 from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
 from protocol.message.imdg.seek import SeekReq, SeekRep
+from protocol.message.imdg.stop import StopReq, StopRep
 from protocol.message.message import IMessage
 from protocol.message.process.close import InrCloseReq, InrCloseRep
 from protocol.message.process.pause import InrPauseReq, InrPauseRep
 from protocol.message.process.play import InrPlayReq, InrPlayRep
 from protocol.message.process.playable_list import InrPlayableListReq, InrPlayableListRep
 from protocol.message.process.seek import InrSeekReq, InrSeekRep
+from protocol.message.process.stop import InrStopReq, InrStopRep
 from protocol.protocol_wrapper import ProtocolWrapper
 
 
@@ -82,6 +85,16 @@ class ProtocolHandler:
         assert isinstance(packet, PDCloseRep)
         process.handle_close_response(packet)
 
+    @staticmethod
+    def pd_stop_request(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, PDStopReq)
+        process.handle_stop_request(packet)
+
+    @staticmethod
+    def pd_stop_response(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, PDStopRep)
+        process.handle_stop_response(packet)
+
     # ---------------------------
     # IMDG — 앱 간 통신
     # ---------------------------
@@ -134,6 +147,16 @@ class ProtocolHandler:
     def close_response(process, wrapper: ProtocolWrapper, packet: IMessage):
         assert isinstance(packet, CloseRep)
         process.handle_close_response(packet)
+
+    @staticmethod
+    def stop_request(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, StopReq)
+        process.handle_stop_request(packet)
+
+    @staticmethod
+    def stop_response(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, StopRep)
+        process.handle_stop_response(packet)
 
     # ---------------------------
     # PROCESS (INR) — 앱 내 통신
@@ -188,6 +211,16 @@ class ProtocolHandler:
         assert isinstance(packet, InrCloseRep)
         process.handle_close_response(packet)
 
+    @staticmethod
+    def inr_stop_request(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, InrStopReq)
+        process.handle_stop_request(packet)
+
+    @staticmethod
+    def inr_stop_response(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, InrStopRep)
+        process.handle_stop_response(packet)
+
     # ---------------------------
     # Group dispatchers — 시그니처 다름 (process, pair_state, packets)
     # ---------------------------
@@ -210,3 +243,7 @@ class ProtocolHandler:
     @staticmethod
     def inr_close_response_group(process, pair_state: E_PROTOCOL_PAIR_STATE, packets: list[IMessage]):
         process.handle_close_group_response(pair_state, packets)
+
+    @staticmethod
+    def inr_stop_response_group(process, pair_state: E_PROTOCOL_PAIR_STATE, packets: list[IMessage]):
+        process.handle_stop_group_response(pair_state, packets)
