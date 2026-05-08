@@ -9,11 +9,14 @@ group dispatcher는 시그니처가 다른 (process, pair_state, packets).
 from __future__ import annotations
 
 from protocol.inr_protocol_matcher.inr_pair_state import E_PROTOCOL_PAIR_STATE
+from protocol.message.external.ui.pause import PDPauseReq, PDPauseRep
 from protocol.message.external.ui.play import PDPlayReq, PDPlayRep
 from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
+from protocol.message.imdg.pause import PauseReq, PauseRep
 from protocol.message.imdg.play import PlayReq, PlayRep
 from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
 from protocol.message.message import IMessage
+from protocol.message.process.pause import InrPauseReq, InrPauseRep
 from protocol.message.process.play import InrPlayReq, InrPlayRep
 from protocol.message.process.playable_list import InrPlayableListReq, InrPlayableListRep
 from protocol.protocol_wrapper import ProtocolWrapper
@@ -43,6 +46,16 @@ class ProtocolHandler:
         assert isinstance(packet, PDPlayRep)
         process.handle_play_response(packet)
 
+    @staticmethod
+    def pd_pause_request(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, PDPauseReq)
+        process.handle_pause_request(packet)
+
+    @staticmethod
+    def pd_pause_response(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, PDPauseRep)
+        process.handle_pause_response(packet)
+
     # ---------------------------
     # IMDG — 앱 간 통신
     # ---------------------------
@@ -65,6 +78,16 @@ class ProtocolHandler:
     def play_response(process, wrapper: ProtocolWrapper, packet: IMessage):
         assert isinstance(packet, PlayRep)
         process.handle_play_response(packet)
+
+    @staticmethod
+    def pause_request(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, PauseReq)
+        process.handle_pause_request(packet)
+
+    @staticmethod
+    def pause_response(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, PauseRep)
+        process.handle_pause_response(packet)
 
     # ---------------------------
     # PROCESS (INR) — 앱 내 통신
@@ -89,6 +112,16 @@ class ProtocolHandler:
         assert isinstance(packet, InrPlayRep)
         process.handle_play_response(packet)
 
+    @staticmethod
+    def inr_pause_request(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, InrPauseReq)
+        process.handle_pause_request(packet)
+
+    @staticmethod
+    def inr_pause_response(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, InrPauseRep)
+        process.handle_pause_response(packet)
+
     # ---------------------------
     # Group dispatchers — 시그니처 다름 (process, pair_state, packets)
     # ---------------------------
@@ -99,3 +132,7 @@ class ProtocolHandler:
     @staticmethod
     def inr_play_response_group(process, pair_state: E_PROTOCOL_PAIR_STATE, packets: list[IMessage]):
         process.handle_play_group_response(pair_state, packets)
+
+    @staticmethod
+    def inr_pause_response_group(process, pair_state: E_PROTOCOL_PAIR_STATE, packets: list[IMessage]):
+        process.handle_pause_group_response(pair_state, packets)

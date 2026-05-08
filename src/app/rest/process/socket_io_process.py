@@ -5,6 +5,7 @@ import asyncio
 from app.rest.websocket_server import SocketIOServer
 from common.process.imdg_bus_process import ImdgBusProcess
 from config.project_config import ProjectConfig
+from protocol.message.external.ui.pause import PDPauseReq, PDPauseRep
 from protocol.message.external.ui.play import PDPlayReq, PDPlayRep
 from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
 from protocol.message.message import IMessage
@@ -81,4 +82,22 @@ class SocketIOProcess(ImdgBusProcess):
 
     def handle_play_response(self, packet: PDPlayRep) -> None:
         """PD_PLAY_REP를 socket.io로 broadcast."""
+        self.broadcast_to_clients(packet)
+
+    def handle_pause_request(self, packet: PDPauseReq) -> None:
+        from process_category.enum_category import E_CATE
+
+        sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
+        receiver = ProtocolOwner.build(E_CATE.STREAMER, E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
+
+        message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PAUSE_REQ)(
+            sender,
+            receiver,
+        )
+
+        envelope = ProtocolWrapper.get_protocol_wrapper(message).get_protocol_packet_message()
+        self.send_message_imdg(envelope)
+
+    def handle_pause_response(self, packet: PDPauseRep) -> None:
+        """PD_PAUSE_REP를 socket.io로 broadcast."""
         self.broadcast_to_clients(packet)

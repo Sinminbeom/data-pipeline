@@ -78,3 +78,6 @@ class DownloaderModule(QueueControlProcess):
 
     def handle_play_request(self, packet: InrPlayReq) -> None:
         raise NotImplementedError
+
+    def handle_pause_request(self, packet) -> None:
+        raise NotImplementedError

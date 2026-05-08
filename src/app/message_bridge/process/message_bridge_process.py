@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from common.process.imdg_bus_process import ImdgBusProcess
+from protocol.message.imdg.pause import PauseReq, PauseRep
 from protocol.message.imdg.play import PlayReq, PlayRep
 from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
 from protocol.message.message import ResponseInfo
@@ -81,6 +82,30 @@ class MessageBridgeProcess(ImdgBusProcess):
         response: ResponseInfo = packet.response or ResponseInfo()
         receiver = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
         factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PD_PLAY_REP)
+        sender = ProtocolOwner.build(self.get_app_name(), self.name)
+
+        fwd_packet = factory(
+            sender,
+            receiver,
+            response.code,
+            response.code_nm,
+            response.reason,
+        )
+        envelope = ProtocolWrapper.get_protocol_wrapper(fwd_packet).get_protocol_packet_message()
+        self.send_message_imdg(envelope)
+
+    def handle_pause_request(self, packet: PauseReq) -> None:
+        # PAUSE_REQ는 STREAMER도 broadcast로 받으므로 BRIDGE는 forward 불필요 — no-op.
+        pass
+
+    def handle_pause_response(self, packet: PauseRep) -> None:
+        """STREAMER → MESSAGE_BRIDGE로 들어온 PAUSE_REP를 PD_PAUSE_REP로 변환해 REST_SERVER로 IMDG 송신."""
+        from process_category.enum_category import E_CATE
+        from protocol.protocol_owner import ProtocolOwner
+
+        response: ResponseInfo = packet.response or ResponseInfo()
+        receiver = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
+        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PD_PAUSE_REP)
         sender = ProtocolOwner.build(self.get_app_name(), self.name)
 
         fwd_packet = factory(
