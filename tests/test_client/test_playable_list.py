@@ -4,7 +4,7 @@ import threading
 import socketio
 
 
-def test_client():
+def test_playable_list():
     """REST_SERVER로 PD_PLAYABLE_LIST_REQ를 보내고 PD_PLAYABLE_LIST_REP를 수신.
 
     full flow:
