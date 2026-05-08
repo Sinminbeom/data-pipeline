@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from typing import Optional
 
+from python_library.storage.local.local_storage_factory import LocalStorageFactory
+from python_library.storage.local.local_storage_info_factory import LocalStorageInfoFactory
+from python_library.storage.storage import IStorage
+
 from common.process.queue_control_process import QueueControlProcess
+from config.project_config import ProjectConfig
 from protocol.message.process.close import InrCloseReq
 from protocol.message.process.pause import InrPauseReq
 from protocol.message.process.play import InrPlayReq
@@ -18,13 +23,31 @@ from app.streamer.process.module.state import (
 class StreamerModule(QueueControlProcess):
     def __init__(self, app_name, process_name):
         super().__init__(app_name, process_name)
+        self._storage: Optional[IStorage] = None
+        self._storage_root: str = ""
+        self._storage_prefix: str = ""
 
     def on_init(self):
         super().on_init()
+        config = ProjectConfig.instance()
+        self._storage_root = (config.storage_root or "").rstrip("/")
+        self._storage_prefix = (config.storage_prefix or "").strip("/")
+        self._storage = LocalStorageFactory(LocalStorageInfoFactory()).create_storage()
+        self._storage.connect()
+
         self.set_state_component(
             build_state_map(),
             E_STREAMER_MODULE_STATE.WAIT,
         )
+
+    def get_storage(self) -> Optional[IStorage]:
+        return self._storage
+
+    def get_storage_root(self) -> str:
+        return self._storage_root
+
+    def get_storage_prefix(self) -> str:
+        return self._storage_prefix
 
     def get_current_state_id(self) -> Optional[E_STREAMER_MODULE_STATE]:
         if self._state_component is None:
