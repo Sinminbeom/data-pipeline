@@ -79,8 +79,6 @@ class SocketIOServer(abWebSocketServer):
         # Socket.IO event — 외부 클라이언트 → REST_SERVER 진입점
         @self.sio.on("message")
         async def request(sid: str, message: str):
-            print("message : " + message)
-
             parsed_dict = json.loads(message)
 
             protocol_id = parsed_dict["protocol_id"]
