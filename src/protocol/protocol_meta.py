@@ -39,6 +39,13 @@ class E_PROTOCOL_ID(Enum):
     INR_PAUSE_REQ = "-400"
     INR_PAUSE_REP = "-401"
 
+    PD_SEEK_REQ = "PD_500"
+    PD_SEEK_REP = "PD_501"
+    SEEK_REQ = "500"
+    SEEK_REP = "501"
+    INR_SEEK_REQ = "-500"
+    INR_SEEK_REP = "-501"
+
 
 @dataclass(frozen=True)
 class ProtocolEntry:
@@ -86,12 +93,15 @@ class ProtocolMeta:
         from protocol.message.external.ui.pause import PDPauseReq, PDPauseRep
         from protocol.message.external.ui.play import PDPlayReq, PDPlayRep
         from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
+        from protocol.message.external.ui.seek import PDSeekReq, PDSeekRep
         from protocol.message.imdg.pause import PauseReq, PauseRep
         from protocol.message.imdg.play import PlayReq, PlayRep
         from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
+        from protocol.message.imdg.seek import SeekReq, SeekRep
         from protocol.message.process.pause import InrPauseReq, InrPauseRep
         from protocol.message.process.play import InrPlayReq, InrPlayRep
         from protocol.message.process.playable_list import InrPlayableListReq, InrPlayableListRep
+        from protocol.message.process.seek import InrSeekReq, InrSeekRep
         from protocol.protocol_handler import ProtocolHandler
 
         # ===== PlayableList 3계층 =====
@@ -448,6 +458,119 @@ class ProtocolMeta:
                 },
                 inr_group_receive_handlers={
                     E_CATE.STREAMER: ProtocolHandler.inr_pause_response_group,
+                },
+            ),
+        )
+
+        # ===== Seek 3계층 =====
+
+        # PD_SEEK_REQ → REST_SERVER
+        cls._register(
+            E_PROTOCOL_ID.PD_SEEK_REQ,
+            ProtocolEntry(
+                factory=lambda sender, receiver, start_time: PDSeekReq(
+                    protocol_id=E_PROTOCOL_ID.PD_SEEK_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                    start_time=start_time,
+                ),
+                decoder=PDSeekReq.from_json,
+                receive_handlers={
+                    E_CATE.REST_SERVER: ProtocolHandler.pd_seek_request,
+                },
+            ),
+        )
+
+        # PD_SEEK_REP → REST_SERVER (socket.io broadcast)
+        cls._register(
+            E_PROTOCOL_ID.PD_SEEK_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, code, code_nm, reason: PDSeekRep(
+                    protocol_id=E_PROTOCOL_ID.PD_SEEK_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    code=code,
+                    code_nm=code_nm,
+                    reason=reason,
+                ),
+                decoder=PDSeekRep.from_json,
+                receive_handlers={
+                    E_CATE.REST_SERVER: ProtocolHandler.pd_seek_response,
+                },
+            ),
+        )
+
+        # SEEK_REQ → BRIDGE / STREAMER / DOWNLOADER
+        cls._register(
+            E_PROTOCOL_ID.SEEK_REQ,
+            ProtocolEntry(
+                factory=lambda sender, receiver, start_time: SeekReq(
+                    protocol_id=E_PROTOCOL_ID.SEEK_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                    start_time=start_time,
+                ),
+                decoder=SeekReq.from_json,
+                receive_handlers={
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.seek_request,
+                    E_CATE.STREAMER: ProtocolHandler.seek_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.seek_request,
+                },
+            ),
+        )
+
+        # SEEK_REP → MESSAGE_BRIDGE
+        cls._register(
+            E_PROTOCOL_ID.SEEK_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, response=None: SeekRep(
+                    protocol_id=E_PROTOCOL_ID.SEEK_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    response=response,
+                ),
+                decoder=SeekRep.from_json,
+                receive_handlers={
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.seek_response,
+                },
+            ),
+        )
+
+        # INR_SEEK_REQ → STREAMER (Module) / DOWNLOADER (Module)
+        cls._register(
+            E_PROTOCOL_ID.INR_SEEK_REQ,
+            ProtocolEntry(
+                factory=lambda sender, receiver, start_time: InrSeekReq(
+                    protocol_id=E_PROTOCOL_ID.INR_SEEK_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                    start_time=start_time,
+                ),
+                decoder=InrSeekReq.from_json,
+                receive_handlers={
+                    E_CATE.STREAMER: ProtocolHandler.inr_seek_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_seek_request,
+                },
+            ),
+        )
+
+        # INR_SEEK_REP → STREAMER (Manager) / DOWNLOADER (Manager) + group
+        cls._register(
+            E_PROTOCOL_ID.INR_SEEK_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, response=None: InrSeekRep(
+                    protocol_id=E_PROTOCOL_ID.INR_SEEK_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    response=response,
+                ),
+                decoder=InrSeekRep.from_json,
+                receive_handlers={
+                    E_CATE.STREAMER: ProtocolHandler.inr_seek_response,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_seek_response,
+                },
+                inr_group_receive_handlers={
+                    E_CATE.STREAMER: ProtocolHandler.inr_seek_response_group,
                 },
             ),
         )

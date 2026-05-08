@@ -81,3 +81,6 @@ class DownloaderModule(QueueControlProcess):
 
     def handle_pause_request(self, packet) -> None:
         raise NotImplementedError
+
+    def handle_seek_request(self, packet) -> None:
+        raise NotImplementedError

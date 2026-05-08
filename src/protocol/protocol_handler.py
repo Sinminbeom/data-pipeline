@@ -12,13 +12,16 @@ from protocol.inr_protocol_matcher.inr_pair_state import E_PROTOCOL_PAIR_STATE
 from protocol.message.external.ui.pause import PDPauseReq, PDPauseRep
 from protocol.message.external.ui.play import PDPlayReq, PDPlayRep
 from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
+from protocol.message.external.ui.seek import PDSeekReq, PDSeekRep
 from protocol.message.imdg.pause import PauseReq, PauseRep
 from protocol.message.imdg.play import PlayReq, PlayRep
 from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
+from protocol.message.imdg.seek import SeekReq, SeekRep
 from protocol.message.message import IMessage
 from protocol.message.process.pause import InrPauseReq, InrPauseRep
 from protocol.message.process.play import InrPlayReq, InrPlayRep
 from protocol.message.process.playable_list import InrPlayableListReq, InrPlayableListRep
+from protocol.message.process.seek import InrSeekReq, InrSeekRep
 from protocol.protocol_wrapper import ProtocolWrapper
 
 
@@ -56,6 +59,16 @@ class ProtocolHandler:
         assert isinstance(packet, PDPauseRep)
         process.handle_pause_response(packet)
 
+    @staticmethod
+    def pd_seek_request(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, PDSeekReq)
+        process.handle_seek_request(packet)
+
+    @staticmethod
+    def pd_seek_response(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, PDSeekRep)
+        process.handle_seek_response(packet)
+
     # ---------------------------
     # IMDG — 앱 간 통신
     # ---------------------------
@@ -88,6 +101,16 @@ class ProtocolHandler:
     def pause_response(process, wrapper: ProtocolWrapper, packet: IMessage):
         assert isinstance(packet, PauseRep)
         process.handle_pause_response(packet)
+
+    @staticmethod
+    def seek_request(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, SeekReq)
+        process.handle_seek_request(packet)
+
+    @staticmethod
+    def seek_response(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, SeekRep)
+        process.handle_seek_response(packet)
 
     # ---------------------------
     # PROCESS (INR) — 앱 내 통신
@@ -122,6 +145,16 @@ class ProtocolHandler:
         assert isinstance(packet, InrPauseRep)
         process.handle_pause_response(packet)
 
+    @staticmethod
+    def inr_seek_request(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, InrSeekReq)
+        process.handle_seek_request(packet)
+
+    @staticmethod
+    def inr_seek_response(process, wrapper: ProtocolWrapper, packet: IMessage):
+        assert isinstance(packet, InrSeekRep)
+        process.handle_seek_response(packet)
+
     # ---------------------------
     # Group dispatchers — 시그니처 다름 (process, pair_state, packets)
     # ---------------------------
@@ -136,3 +169,7 @@ class ProtocolHandler:
     @staticmethod
     def inr_pause_response_group(process, pair_state: E_PROTOCOL_PAIR_STATE, packets: list[IMessage]):
         process.handle_pause_group_response(pair_state, packets)
+
+    @staticmethod
+    def inr_seek_response_group(process, pair_state: E_PROTOCOL_PAIR_STATE, packets: list[IMessage]):
+        process.handle_seek_group_response(pair_state, packets)

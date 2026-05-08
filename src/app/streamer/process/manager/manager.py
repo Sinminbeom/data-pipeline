@@ -6,6 +6,7 @@ from common.process.imdg_bus_process import ImdgBusProcess
 from protocol.inr_protocol_matcher.inr_pair_state import E_PROTOCOL_PAIR_STATE
 from protocol.message.imdg.pause import PauseReq
 from protocol.message.imdg.play import PlayReq
+from protocol.message.imdg.seek import SeekReq
 from protocol.message.message import IMessage
 
 from app.streamer.process.manager.state import (
@@ -119,6 +120,53 @@ class StreamerManager(ImdgBusProcess):
         else:
             self.send_message_rep_imdg(
                 E_PROTOCOL_ID.PAUSE_REP, bridge,
+                response=make_response_info(E_CODE.OK),
+            )
+
+        if self._state_component is not None:
+            self._state_component.change_state(E_STREAMER_MANAGER_STATE.WAIT)
+
+    def handle_seek_request(self, packet: SeekReq) -> None:
+        from process_category.enum_category import E_CATE
+        from protocol.protocol_code import E_CODE, make_response_info
+        from protocol.protocol_meta import E_PROTOCOL_ID
+        from protocol.protocol_owner import ProtocolOwner
+
+        # Seek은 PLAY 또는 PAUSE 중에 의미 있음 — WAIT일 때는 INVALID_REQUEST.
+        current = self.get_current_state_id()
+        if current not in (E_STREAMER_MANAGER_STATE.PLAY, E_STREAMER_MANAGER_STATE.PAUSE):
+            self.send_message_rep_imdg(
+                E_PROTOCOL_ID.SEEK_REP,
+                ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE),
+                response=make_response_info(E_CODE.INVALID_REQUEST),
+            )
+            return
+
+        if self._state_component is not None:
+            self._state_component.change_state(E_STREAMER_MANAGER_STATE.SEEK, state_param_dto=packet)
+
+    def handle_seek_response(self, packet) -> None:
+        # 매처 경로(handle_seek_group_response)가 후처리 — 개별 handler는 no-op.
+        pass
+
+    def handle_seek_group_response(self, pair_state: E_PROTOCOL_PAIR_STATE, packets: list[IMessage]) -> None:
+        from process_category.enum_category import E_CATE
+        from protocol.protocol_code import E_CODE, make_response_info
+        from protocol.protocol_meta import E_PROTOCOL_ID
+        from protocol.protocol_owner import ProtocolOwner
+
+        bridge = ProtocolOwner.build(
+            E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE
+        )
+
+        if pair_state == E_PROTOCOL_PAIR_STATE.ERROR:
+            self.send_message_rep_imdg(
+                E_PROTOCOL_ID.SEEK_REP, bridge,
+                response=make_response_info(E_CODE.INVALID_REQUEST, "module error"),
+            )
+        else:
+            self.send_message_rep_imdg(
+                E_PROTOCOL_ID.SEEK_REP, bridge,
                 response=make_response_info(E_CODE.OK),
             )
 
