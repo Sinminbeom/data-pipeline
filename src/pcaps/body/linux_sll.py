@@ -1,58 +1,71 @@
 from __future__ import annotations
 
-from pcaps.ipcap import IPCap
-from pcaps.pcap_body import abTcpPcapBody, abUdpPcapBody
+from pcaps.body.pcap_body import abPcapBody
+from pcaps.body.ip_header import IpHeader, TcpFlags, UdpHeader
+from pcaps.constants import E_LINK_TYPE, E_PROTOCOL, E_TCP_FLAG
+
+# Linux SLL link-layer header = 16 bytes
+_LINK_HEADER_SIZE = 16
+_IP_HEADER_SIZE = 20
+_UDP_PAYLOAD_OFFSET = _LINK_HEADER_SIZE + _IP_HEADER_SIZE + 8   # 44
+_TCP_PAYLOAD_OFFSET = _LINK_HEADER_SIZE + _IP_HEADER_SIZE + 32  # 68
 
 
-class UdpLinuxSll(abUdpPcapBody):
+class UdpLinuxSll(abPcapBody):
+    link_type: int = E_LINK_TYPE.LINUX_SLL
+    protocol: int = E_PROTOCOL.UDP
+
     def __init__(self) -> None:
-        super().__init__(IPCap.E_LINK_TYPE.LINUX_SLL)
+        self.data: bytes = b""
+        self.source_ip: str = ""
+        self.destination_ip: str = ""
+        self.length: int = 0
+        self.checksum: int = 0
 
-    def get_data_load(self) -> bytes:
-        return self.data[44:]
-
-    def parser_pcap(self, data: bytes) -> UdpLinuxSll:
+    def parse(self, data: bytes) -> UdpLinuxSll:
         self.data = data
+        ip = IpHeader.parse(data, _LINK_HEADER_SIZE)
+        udp = UdpHeader.parse(data, _LINK_HEADER_SIZE + _IP_HEADER_SIZE)
 
-        self.protocol = int.from_bytes(self._get_data()[25:26], "little")
-
-        binary = self._get_data()[28:28 + 4]
-        self.source_address = ".".join(map(str, binary))
-
-        binary = self._get_data()[32:32 + 4]
-        self.destination_address = ".".join(map(str, binary))
-
-        self.length = int.from_bytes(self._get_data()[40:40 + 2], "little")
-        self.checksum = int.from_bytes(self._get_data()[42:42 + 2], "little")
-
+        self.protocol = ip.protocol
+        self.source_ip = ip.source_ip
+        self.destination_ip = ip.destination_ip
+        self.length = udp.length
+        self.checksum = udp.checksum
         return self
 
+    @property
+    def payload(self) -> bytes:
+        return self.data[_UDP_PAYLOAD_OFFSET:]
 
-class TcpLinuxSll(abTcpPcapBody):
+
+class TcpLinuxSll(abPcapBody):
+    link_type: int = E_LINK_TYPE.LINUX_SLL
+    protocol: int = E_PROTOCOL.TCP
+
     def __init__(self) -> None:
-        super().__init__(IPCap.E_LINK_TYPE.LINUX_SLL)
+        self.data: bytes = b""
+        self.source_ip: str = ""
+        self.destination_ip: str = ""
+        self.length: int = 0
+        self.checksum: int = 0
+        self.ack: int = 0
+        self.psh: int = 0
 
-    def get_data_load(self) -> bytes:
-        return self.data[68:]
-
-    def parser_pcap(self, data: bytes) -> TcpLinuxSll:
+    def parse(self, data: bytes) -> TcpLinuxSll:
         self.data = data
+        ip = IpHeader.parse(data, _LINK_HEADER_SIZE)
+        flags = TcpFlags.parse(data, 48, E_TCP_FLAG.ACK_AND_PSH)
 
-        self.protocol = int.from_bytes(self._get_data()[25:26], "little")
-
-        binary = self._get_data()[28:28 + 4]
-        self.source_address = ".".join(map(str, binary))
-
-        binary = self._get_data()[32:32 + 4]
-        self.destination_address = ".".join(map(str, binary))
-
-        self.length = int.from_bytes(self._get_data()[59:59 + 1], "little")
-        self.checksum = int.from_bytes(self._get_data()[52:52 + 2], "little")
-
-        binary = self._get_data()[48:48 + 2]
-        ack_and_psh = int.from_bytes(binary[1:], "little") & IPCap.E_TCP_FLAG.ACK_AND_PSH
-
-        self.ack = (ack_and_psh >> 3) & 1
-        self.psh = (ack_and_psh >> 4) & 1
-
+        self.protocol = ip.protocol
+        self.source_ip = ip.source_ip
+        self.destination_ip = ip.destination_ip
+        self.length = int.from_bytes(self.data[59:60], "little")
+        self.checksum = int.from_bytes(self.data[52:54], "little")
+        self.ack = flags.ack
+        self.psh = flags.psh
         return self
+
+    @property
+    def payload(self) -> bytes:
+        return self.data[_TCP_PAYLOAD_OFFSET:]
