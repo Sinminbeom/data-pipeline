@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 from common.process.queue_control_process import QueueControlProcess
+from protocol.message.process.close import InrCloseReq
 from protocol.message.process.pause import InrPauseReq
 from protocol.message.process.play import InrPlayReq
 from protocol.message.process.seek import InrSeekReq
@@ -69,5 +70,13 @@ class StreamerModule(QueueControlProcess):
         if self._state_component is not None:
             self._state_component.change_state(
                 E_STREAMER_MODULE_STATE.SEEK,
+                state_param_dto=packet,
+            )
+
+    def handle_close_request(self, packet: InrCloseReq) -> None:
+        # placeholder — 실제 GStreamer close 흐름 미이식. 어떤 state든 일단 CLOSE 진입 후 즉시 OK.
+        if self._state_component is not None:
+            self._state_component.change_state(
+                E_STREAMER_MODULE_STATE.CLOSE,
                 state_param_dto=packet,
             )

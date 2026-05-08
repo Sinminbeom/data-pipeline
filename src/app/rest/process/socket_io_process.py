@@ -5,6 +5,7 @@ import asyncio
 from app.rest.websocket_server import SocketIOServer
 from common.process.imdg_bus_process import ImdgBusProcess
 from config.project_config import ProjectConfig
+from protocol.message.external.ui.close import PDCloseReq, PDCloseRep
 from protocol.message.external.ui.pause import PDPauseReq, PDPauseRep
 from protocol.message.external.ui.play import PDPlayReq, PDPlayRep
 from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
@@ -120,4 +121,22 @@ class SocketIOProcess(ImdgBusProcess):
 
     def handle_seek_response(self, packet: PDSeekRep) -> None:
         """PD_SEEK_REP를 socket.io로 broadcast."""
+        self.broadcast_to_clients(packet)
+
+    def handle_close_request(self, packet: PDCloseReq) -> None:
+        from process_category.enum_category import E_CATE
+
+        sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
+        receiver = ProtocolOwner.build(E_CATE.STREAMER, E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
+
+        message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.CLOSE_REQ)(
+            sender,
+            receiver,
+        )
+
+        envelope = ProtocolWrapper.get_protocol_wrapper(message).get_protocol_packet_message()
+        self.send_message_imdg(envelope)
+
+    def handle_close_response(self, packet: PDCloseRep) -> None:
+        """PD_CLOSE_REP를 socket.io로 broadcast."""
         self.broadcast_to_clients(packet)
