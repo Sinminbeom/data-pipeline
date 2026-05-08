@@ -122,3 +122,9 @@ class DownloaderManager(ImdgBusProcess):
 
     def handle_play_response(self, packet: InrPlayRep) -> None:
         raise NotImplementedError
+
+    def handle_pause_request(self, packet) -> None:
+        raise NotImplementedError
+
+    def handle_pause_response(self, packet) -> None:
+        raise NotImplementedError

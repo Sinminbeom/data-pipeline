@@ -32,6 +32,13 @@ class E_PROTOCOL_ID(Enum):
     INR_PLAY_REQ = "-200"
     INR_PLAY_REP = "-201"
 
+    PD_PAUSE_REQ = "PD_400"
+    PD_PAUSE_REP = "PD_401"
+    PAUSE_REQ = "400"
+    PAUSE_REP = "401"
+    INR_PAUSE_REQ = "-400"
+    INR_PAUSE_REP = "-401"
+
 
 @dataclass(frozen=True)
 class ProtocolEntry:
@@ -76,10 +83,13 @@ class ProtocolMeta:
     @classmethod
     def _register_protocols(cls) -> None:
         from process_category.enum_category import E_CATE
+        from protocol.message.external.ui.pause import PDPauseReq, PDPauseRep
         from protocol.message.external.ui.play import PDPlayReq, PDPlayRep
         from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
+        from protocol.message.imdg.pause import PauseReq, PauseRep
         from protocol.message.imdg.play import PlayReq, PlayRep
         from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
+        from protocol.message.process.pause import InrPauseReq, InrPauseRep
         from protocol.message.process.play import InrPlayReq, InrPlayRep
         from protocol.message.process.playable_list import InrPlayableListReq, InrPlayableListRep
         from protocol.protocol_handler import ProtocolHandler
@@ -328,6 +338,116 @@ class ProtocolMeta:
                 },
                 inr_group_receive_handlers={
                     E_CATE.STREAMER: ProtocolHandler.inr_play_response_group,
+                },
+            ),
+        )
+
+        # ===== Pause 3계층 =====
+
+        # PD_PAUSE_REQ → REST_SERVER
+        cls._register(
+            E_PROTOCOL_ID.PD_PAUSE_REQ,
+            ProtocolEntry(
+                factory=lambda sender, receiver: PDPauseReq(
+                    protocol_id=E_PROTOCOL_ID.PD_PAUSE_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                ),
+                decoder=PDPauseReq.from_json,
+                receive_handlers={
+                    E_CATE.REST_SERVER: ProtocolHandler.pd_pause_request,
+                },
+            ),
+        )
+
+        # PD_PAUSE_REP → REST_SERVER (socket.io broadcast)
+        cls._register(
+            E_PROTOCOL_ID.PD_PAUSE_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, code, code_nm, reason: PDPauseRep(
+                    protocol_id=E_PROTOCOL_ID.PD_PAUSE_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    code=code,
+                    code_nm=code_nm,
+                    reason=reason,
+                ),
+                decoder=PDPauseRep.from_json,
+                receive_handlers={
+                    E_CATE.REST_SERVER: ProtocolHandler.pd_pause_response,
+                },
+            ),
+        )
+
+        # PAUSE_REQ → BRIDGE / STREAMER / DOWNLOADER (Play와 동일 broadcast 패턴)
+        cls._register(
+            E_PROTOCOL_ID.PAUSE_REQ,
+            ProtocolEntry(
+                factory=lambda sender, receiver: PauseReq(
+                    protocol_id=E_PROTOCOL_ID.PAUSE_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                ),
+                decoder=PauseReq.from_json,
+                receive_handlers={
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.pause_request,
+                    E_CATE.STREAMER: ProtocolHandler.pause_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.pause_request,
+                },
+            ),
+        )
+
+        # PAUSE_REP → MESSAGE_BRIDGE
+        cls._register(
+            E_PROTOCOL_ID.PAUSE_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, response=None: PauseRep(
+                    protocol_id=E_PROTOCOL_ID.PAUSE_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    response=response,
+                ),
+                decoder=PauseRep.from_json,
+                receive_handlers={
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.pause_response,
+                },
+            ),
+        )
+
+        # INR_PAUSE_REQ → STREAMER (Module) / DOWNLOADER (Module)
+        cls._register(
+            E_PROTOCOL_ID.INR_PAUSE_REQ,
+            ProtocolEntry(
+                factory=lambda sender, receiver: InrPauseReq(
+                    protocol_id=E_PROTOCOL_ID.INR_PAUSE_REQ.value,
+                    sender=sender,
+                    receiver=receiver,
+                ),
+                decoder=InrPauseReq.from_json,
+                receive_handlers={
+                    E_CATE.STREAMER: ProtocolHandler.inr_pause_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_pause_request,
+                },
+            ),
+        )
+
+        # INR_PAUSE_REP → STREAMER (Manager) / DOWNLOADER (Manager) + group
+        cls._register(
+            E_PROTOCOL_ID.INR_PAUSE_REP,
+            ProtocolEntry(
+                factory=lambda sender, receiver, response=None: InrPauseRep(
+                    protocol_id=E_PROTOCOL_ID.INR_PAUSE_REP.value,
+                    sender=sender,
+                    receiver=receiver,
+                    response=response,
+                ),
+                decoder=InrPauseRep.from_json,
+                receive_handlers={
+                    E_CATE.STREAMER: ProtocolHandler.inr_pause_response,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_pause_response,
+                },
+                inr_group_receive_handlers={
+                    E_CATE.STREAMER: ProtocolHandler.inr_pause_response_group,
                 },
             ),
         )
