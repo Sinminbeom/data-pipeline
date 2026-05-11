@@ -13,6 +13,14 @@ class ProjectConfig(AppConfig):
         REST = "REST"
         STREAM = "STREAM"
         STORAGE = "STORAGE"
+        STREAM_OUTPUT = "STREAM_OUTPUT"
+        PLAYER = "PLAYER"
+
+    class E_CATE_ELE_PLAYER(IENUM):
+        BUFFER_SIZE = "BUFFER_SIZE"
+        READER_BUFFERING_TIME = "READER_BUFFERING_TIME"
+        FILE_REFIND_COUNT = "FILE_REFIND_COUNT"
+        FILE_REFIND_SLEEP_TIME = "FILE_REFIND_SLEEP_TIME"
 
     class E_CATE_ELE_COMMON(IENUM):
         PROJECT_NAME = "PROJECT_NAME"
@@ -84,3 +92,24 @@ class ProjectConfig(AppConfig):
         self.storage_prefix = self.get_config(
             ProjectConfig.E_CATE_TYPE.STORAGE, ProjectConfig.E_CATE_ELE_STORAGE.PREFIX
         )
+
+        # Player buffer 설정
+        self.player_buffer_size = int(self.get_config(
+            ProjectConfig.E_CATE_TYPE.PLAYER, ProjectConfig.E_CATE_ELE_PLAYER.BUFFER_SIZE
+        ))
+        self.player_reader_buffering_time = int(self.get_config(
+            ProjectConfig.E_CATE_TYPE.PLAYER, ProjectConfig.E_CATE_ELE_PLAYER.READER_BUFFERING_TIME
+        ))
+        self.player_file_refind_count = int(self.get_config(
+            ProjectConfig.E_CATE_TYPE.PLAYER, ProjectConfig.E_CATE_ELE_PLAYER.FILE_REFIND_COUNT
+        ))
+        self.player_file_refind_sleep_time = float(self.get_config(
+            ProjectConfig.E_CATE_TYPE.PLAYER, ProjectConfig.E_CATE_ELE_PLAYER.FILE_REFIND_SLEEP_TIME
+        ))
+
+    def get_stream_output(self, sensor_name: str) -> tuple[str, int]:
+        """sensor name → (target_ip, target_port). config 키는 <SENSOR>_IP / <SENSOR>_PORT (대문자)."""
+        upper = sensor_name.upper()
+        ip = self.get_config(ProjectConfig.E_CATE_TYPE.STREAM_OUTPUT, f"{upper}_IP")
+        port = int(self.get_config(ProjectConfig.E_CATE_TYPE.STREAM_OUTPUT, f"{upper}_PORT"))
+        return ip, port

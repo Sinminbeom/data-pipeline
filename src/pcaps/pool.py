@@ -1,66 +1,67 @@
 from __future__ import annotations
 
+import threading
+from collections import deque
+from typing import Optional
+
 from pcaps.packet import PcapPacket
 
 
 class PcapPool:
-    """PcapPacket 누적 보관 + active flag 관리.
+    """PcapPacket producer-consumer buffer.
 
-    Wrapper 클래스 없이 dict[index → bool]로 단순화.
+    Reader thread가 append, Sender thread가 pop_front — deque 기반.
+    max_size 설정 시 가득 차면 append=False 반환 (호출자가 wait 결정).
     """
 
-    def __init__(self) -> None:
-        self._packets: list[PcapPacket] = []
-        self._active: dict[int, bool] = {}
+    def __init__(self, max_size: Optional[int] = None) -> None:
+        self._packets: deque[PcapPacket] = deque()
+        self._max_size: Optional[int] = max_size
+        self._lock = threading.Lock()
 
-    def append(self, packet: PcapPacket) -> None:
-        index = len(self._packets)
-        self._packets.append(packet)
-        self._active[index] = True
+    def append(self, packet: PcapPacket) -> bool:
+        """가득 차면 False — 호출자가 sleep+retry. 성공 시 True."""
+        with self._lock:
+            if self._max_size is not None and len(self._packets) >= self._max_size:
+                return False
+            self._packets.append(packet)
+            return True
+
+    def pop_front(self) -> Optional[PcapPacket]:
+        """비어있으면 None — 호출자가 sleep+retry."""
+        with self._lock:
+            if not self._packets:
+                return None
+            return self._packets.popleft()
+
+    def peek_front(self) -> Optional[PcapPacket]:
+        with self._lock:
+            return self._packets[0] if self._packets else None
 
     def get(self, index: int) -> PcapPacket:
-        return self._packets[index]
-
-    def is_active(self, index: int) -> bool:
-        return self._active.get(index, False)
-
-    def set_active(self, index: int, active: bool) -> None:
-        self._active[index] = active
-
-    @property
-    def size(self) -> int:
-        return len(self._packets)
+        """index access — PcapReader.head_packet 등에서 사용."""
+        with self._lock:
+            return self._packets[index]
 
     @property
     def packets(self) -> list[PcapPacket]:
-        return self._packets
+        """전체 packet 스냅샷 — read-only iteration용."""
+        with self._lock:
+            return list(self._packets)
 
-    def _first_active_index(self) -> int:
-        """이진 탐색 — active=False가 앞에서부터 채워질 때 첫 active=True 인덱스."""
-        left, right = 0, self.size - 1
-        while left <= right:
-            mid = (left + right) // 2
-            if self.is_active(mid) and (mid == 0 or self.is_active(mid - 1) is False):
-                return mid
-            if self.is_active(mid):
-                right = mid - 1
-            else:
-                left = mid + 1
-        return -1
+    @property
+    def size(self) -> int:
+        with self._lock:
+            return len(self._packets)
 
-    def pop_with_time_stamp(self, accumulate_offset_time: float) -> None:
-        # 원본 동작 보존 — 현재 placeholder
-        index = self._first_active_index()
-        print(f"ind:{index}")
+    @property
+    def is_full(self) -> bool:
+        if self._max_size is None:
+            return False
+        with self._lock:
+            return len(self._packets) >= self._max_size
 
-    def println(self) -> None:
-        for packet in self._packets:
-            print(
-                f" N : {packet.no:>5} "
-                f" ts : {packet.header.time_str}  "
-                f" t:{packet.time.time_stamp:<20} "
-                f" of : {packet.time.offset_time:<22} "
-                f" auof : {packet.time.accumulate_offset_time} "
-                f" w_auof : {packet.time.world_accumulate_offset_time} "
-                f" dpayload_size:{len(packet.payload)}"
-            )
+    @property
+    def is_empty(self) -> bool:
+        with self._lock:
+            return len(self._packets) == 0
