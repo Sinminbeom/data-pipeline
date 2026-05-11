@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class PauseState(abState):
-    """Pcaps/GStreamer 미이식 상태의 placeholder — 진입 즉시 OK 응답 후 WAIT 복귀."""
+    """sender 송출 일시정지 — reader는 계속 buffer 채움. player 유지."""
     owner: StreamerModule
 
     def on_enter(self):
@@ -24,13 +24,34 @@ class PauseState(abState):
         from protocol.protocol_code import E_CODE, make_response_info
         from protocol.protocol_meta import E_PROTOCOL_ID
 
+        player = self.owner.get_player()
+        if player is None:
+            self.__send_invalid_request("player not active")
+            self.__transition_to_wait()
+            return
+
+        player.pause()
+
         self.owner.send_message_rep_inner_queue(
             E_PROTOCOL_ID.INR_PAUSE_REP,
             E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER,
             response=make_response_info(E_CODE.OK),
         )
-
-        from app.streamer.process.module.state.state_enum import E_STREAMER_MODULE_STATE
-        self.owner._state_component.change_state(E_STREAMER_MODULE_STATE.WAIT)
+        self.__transition_to_wait()
 
     def on_proc_every_frame(self): pass
+
+    def __send_invalid_request(self, reason: str) -> None:
+        from process_category.enum_category import E_CATE
+        from protocol.protocol_code import E_CODE, make_response_info
+        from protocol.protocol_meta import E_PROTOCOL_ID
+
+        self.owner.send_message_rep_inner_queue(
+            E_PROTOCOL_ID.INR_PAUSE_REP,
+            E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER,
+            response=make_response_info(E_CODE.INVALID_REQUEST, reason=reason),
+        )
+
+    def __transition_to_wait(self) -> None:
+        from app.streamer.process.module.state.state_enum import E_STREAMER_MODULE_STATE
+        self.owner._state_component.change_state(E_STREAMER_MODULE_STATE.WAIT)

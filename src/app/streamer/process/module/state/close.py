@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class CloseState(abState):
-    """Pcaps/GStreamer 미이식 상태의 placeholder — 진입 즉시 OK 응답 후 WAIT 복귀."""
+    """player 종료 + None reset. replayer 미러 — stop과 동일 동작."""
     owner: StreamerModule
 
     def on_enter(self):
@@ -23,6 +23,14 @@ class CloseState(abState):
         from process_category.enum_category import E_CATE
         from protocol.protocol_code import E_CODE, make_response_info
         from protocol.protocol_meta import E_PROTOCOL_ID
+
+        player = self.owner.get_player()
+        if player is not None:
+            try:
+                player.close()
+            except Exception:
+                pass
+            self.owner.set_player(None)
 
         self.owner.send_message_rep_inner_queue(
             E_PROTOCOL_ID.INR_CLOSE_REP,
