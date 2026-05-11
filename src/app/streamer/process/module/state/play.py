@@ -24,19 +24,16 @@ class PlayState(abState):
 
     def __init__(self, state_lists, state_id) -> None:
         super().__init__(state_lists, state_id)
-        self._player: Optional[PcapPlayer] = None
         self._ready_fired: bool = False
         self._error: Optional[Exception] = None
 
     def on_enter(self):
         assert isinstance(self.state_param_dto, InrPlayReq)
-        self._player = None
         self._ready_fired = False
         self._error = None
 
     def on_leave(self):
-        # PlayState 빠질 때 player는 그대로 유지 (Phase 3에서 Pause/Seek/Stop에 사용)
-        # 본 PR은 OK 응답 후 WAIT 복귀라 player가 background에서 계속 송출 + 자체 종료.
+        # player는 owner._player에 보존 — Pause/Seek/Close/Stop state에서 접근.
         pass
 
     def on_proc_once(self):
@@ -55,7 +52,7 @@ class PlayState(abState):
             self.__transition_to_wait()
             return
 
-        self._player = PcapPlayer(
+        player = PcapPlayer(
             storage_root=self.owner.get_storage_root(),
             storage_prefix=self.owner.get_storage_prefix(),
             vehicle_id=self.state_param_dto.vehicle_id,
@@ -71,7 +68,8 @@ class PlayState(abState):
             on_ready=self._on_ready,
             on_error=self._on_error,
         )
-        self._player.start()
+        self.owner.set_player(player)
+        player.start()
 
     def on_proc_every_frame(self):
         from process_category.enum_category import E_CATE

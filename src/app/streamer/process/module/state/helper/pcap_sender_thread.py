@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import socket
+import threading
 import time
 from typing import Callable, Optional
 
@@ -15,6 +16,7 @@ ErrorCallback = Callable[[Exception], None]
 class PcapSenderThread(abThread):
     """PcapPool에서 패킷 꺼내 time.offset_time 만큼 sleep 후 UDP 송출 consumer thread.
 
+    pause_event 세팅 시 송출 일시정지 (Pool은 그대로 둠 — reader 계속 채울 수 있음).
     replayer App/Streamer/GStreamer/State/Helper/PcapSenderThread.py 미러.
     """
 
@@ -33,6 +35,17 @@ class PcapSenderThread(abThread):
         self._on_complete = on_complete
         self._on_error = on_error
         self._socket: Optional[socket.socket] = None
+        self._pause_event = threading.Event()
+
+    def pause(self) -> None:
+        """송출 일시정지 — pop_front 직전에 대기. reader는 영향 없음."""
+        self._pause_event.set()
+
+    def resume(self) -> None:
+        self._pause_event.clear()
+
+    def is_pause(self) -> bool:
+        return self._pause_event.is_set()
 
     def action(self) -> None:
         try:
@@ -50,6 +63,11 @@ class PcapSenderThread(abThread):
         max_empty_before_complete = 100  # 1초 (10ms * 100) empty면 EOF로 간주
 
         while not self.is_stop():
+            # pause 중이면 짧게 sleep 후 재확인
+            if self.is_pause():
+                time.sleep(0.01)
+                continue
+
             packet = self._pool.pop_front()
             if packet is None:
                 consecutive_empty += 1

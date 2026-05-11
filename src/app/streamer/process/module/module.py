@@ -18,6 +18,7 @@ from app.streamer.process.module.state import (
     E_STREAMER_MODULE_STATE,
     build_state_map,
 )
+from app.streamer.process.module.state.helper.pcap_player import PcapPlayer
 
 
 class StreamerModule(QueueControlProcess):
@@ -26,6 +27,13 @@ class StreamerModule(QueueControlProcess):
         self._storage: Optional[IStorage] = None
         self._storage_root: str = ""
         self._storage_prefix: str = ""
+        self._player: Optional[PcapPlayer] = None
+
+    def get_player(self) -> Optional[PcapPlayer]:
+        return self._player
+
+    def set_player(self, player: Optional[PcapPlayer]) -> None:
+        self._player = player
 
     def on_init(self):
         super().on_init()

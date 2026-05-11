@@ -38,6 +38,11 @@ class PcapPool:
         with self._lock:
             return self._packets[0] if self._packets else None
 
+    def clear(self) -> None:
+        """Pool 비움 — seek 시 사용."""
+        with self._lock:
+            self._packets.clear()
+
     def get(self, index: int) -> PcapPacket:
         """index access — PcapReader.head_packet 등에서 사용."""
         with self._lock:
