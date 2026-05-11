@@ -118,7 +118,21 @@ class DownloaderManager(ImdgBusProcess):
             self._state_component.change_state(E_DOWNLOADER_MANAGER_STATE.DOWNLOAD_READY)
 
     def handle_play_request(self, packet: PlayReq) -> None:
-        raise NotImplementedError
+        from process_category.enum_category import E_CATE
+        from protocol.protocol_code import E_CODE, make_response_info
+        from protocol.protocol_meta import E_PROTOCOL_ID
+        from protocol.protocol_owner import ProtocolOwner
+
+        if self.get_current_state_id() != E_DOWNLOADER_MANAGER_STATE.DOWNLOAD_READY:
+            self.send_message_rep_imdg(
+                E_PROTOCOL_ID.PLAY_REP,
+                ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE),
+                response=make_response_info(E_CODE.INVALID_REQUEST),
+            )
+            return
+
+        if self._state_component is not None:
+            self._state_component.change_state(E_DOWNLOADER_MANAGER_STATE.DOWNLOAD, state_param_dto=packet)
 
     def handle_play_response(self, packet: InrPlayRep) -> None:
         raise NotImplementedError

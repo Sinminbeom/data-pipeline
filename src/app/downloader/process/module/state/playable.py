@@ -63,9 +63,10 @@ class PlayableState(abState):
         sensor_id = self.owner.name
         if self._lookup_thread.get_error() is not None:
             self.__send_error(sensor_id, str(self._lookup_thread.get_error()))
+            self.__transition_to_wait()
         else:
             self.__send_ok(sensor_id, self._lookup_thread.get_sections())
-        self.__transition_to_wait()
+            self.__transition_to_download_ready()
 
     def __send_ok(self, sensor_id: str, sections: list[SectionElement]) -> None:
         from process_category.enum_category import E_CATE
@@ -110,3 +111,8 @@ class PlayableState(abState):
         from app.downloader.process.module.state.state_enum import E_DOWNLOADER_MODULE_STATE
 
         self.owner._state_component.change_state(E_DOWNLOADER_MODULE_STATE.WAIT)
+
+    def __transition_to_download_ready(self) -> None:
+        from app.downloader.process.module.state.state_enum import E_DOWNLOADER_MODULE_STATE
+
+        self.owner._state_component.change_state(E_DOWNLOADER_MODULE_STATE.DOWNLOAD_READY)
