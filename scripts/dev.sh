@@ -21,3 +21,7 @@ sleep 2
 # 테스트 실행
 uv run pytest tests/test_client/test_playable_list.py -s
 uv run pytest tests/test_client/test_play.py -s
+uv run pytest tests/test_client/test_pause.py -s
+uv run pytest tests/test_client/test_seek.py -s
+uv run pytest tests/test_client/test_close.py -s
+uv run pytest tests/test_client/test_stop.py -s
