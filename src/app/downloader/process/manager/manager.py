@@ -174,18 +174,6 @@ class DownloaderManager(ImdgBusProcess):
         if self._state_component is not None:
             self._state_component.change_state(E_DOWNLOADER_MANAGER_STATE.WAIT)
 
-    def handle_pause_request(self, packet) -> None:
-        raise NotImplementedError
-
-    def handle_pause_response(self, packet) -> None:
-        raise NotImplementedError
-
-    def handle_seek_request(self, packet) -> None:
-        raise NotImplementedError
-
-    def handle_seek_response(self, packet) -> None:
-        raise NotImplementedError
-
     def handle_close_request(self, packet) -> None:
         raise NotImplementedError
 

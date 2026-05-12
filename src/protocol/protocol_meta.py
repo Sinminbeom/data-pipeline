@@ -410,7 +410,7 @@ class ProtocolMeta:
             ),
         )
 
-        # PAUSE_REQ → BRIDGE / STREAMER / DOWNLOADER (Play와 동일 broadcast 패턴)
+        # PAUSE_REQ → BRIDGE / STREAMER (DOWNLOADER 무관 — 재생 흐름 전용)
         cls._register(
             E_PROTOCOL_ID.PAUSE_REQ,
             ProtocolEntry(
@@ -423,7 +423,6 @@ class ProtocolMeta:
                 receive_handlers={
                     E_CATE.MESSAGE_BRIDGE: ProtocolHandler.pause_request,
                     E_CATE.STREAMER: ProtocolHandler.pause_request,
-                    E_CATE.DOWNLOADER: ProtocolHandler.pause_request,
                 },
             ),
         )
@@ -521,7 +520,7 @@ class ProtocolMeta:
             ),
         )
 
-        # SEEK_REQ → BRIDGE / STREAMER / DOWNLOADER
+        # SEEK_REQ → BRIDGE / STREAMER (DOWNLOADER 무관 — 재생 흐름 전용)
         cls._register(
             E_PROTOCOL_ID.SEEK_REQ,
             ProtocolEntry(
@@ -535,7 +534,6 @@ class ProtocolMeta:
                 receive_handlers={
                     E_CATE.MESSAGE_BRIDGE: ProtocolHandler.seek_request,
                     E_CATE.STREAMER: ProtocolHandler.seek_request,
-                    E_CATE.DOWNLOADER: ProtocolHandler.seek_request,
                 },
             ),
         )
