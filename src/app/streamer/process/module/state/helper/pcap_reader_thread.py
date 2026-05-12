@@ -24,7 +24,6 @@ class PcapReaderThread(abThread):
     """sensor 1개에 대한 1초 단위 PCAP 파일 read producer thread.
 
     buffer가 가득 차면 wait, ready_threshold만큼 읽으면 ready_callback 호출.
-    replayer App/Streamer/GStreamer/State/Helper/PcapReaderThread.py 미러.
     """
 
     def __init__(

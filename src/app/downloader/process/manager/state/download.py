@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class DownloadState(abState):
     """PlayReq 수신 후 모듈에 INR_PLAY_REQ를 broadcast하는 상태.
 
-    Phase 1: 진입 시 broadcast만 수행. 모듈 응답 후처리(group response)는 후속 phase.
+    모듈 응답 후처리(group response)는 DownloaderManager.handle_play_group_response.
     """
     owner: DownloaderManager
 

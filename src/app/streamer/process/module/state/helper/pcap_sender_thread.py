@@ -17,7 +17,6 @@ class PcapSenderThread(abThread):
     """PcapPool에서 패킷 꺼내 time.offset_time 만큼 sleep 후 UDP 송출 consumer thread.
 
     pause_event 세팅 시 송출 일시정지 (Pool은 그대로 둠 — reader 계속 채울 수 있음).
-    replayer App/Streamer/GStreamer/State/Helper/PcapSenderThread.py 미러.
     """
 
     def __init__(

@@ -22,7 +22,7 @@ class pdPacket(IMessage):
 
 @dataclass
 class pdResponsePacket(pdPacket):
-    """RESPONSE PD packet. code/code_nm/reason 직접 보유 (replayer 동일)."""
+    """RESPONSE PD packet. code/code_nm/reason 직접 보유."""
     message_direction: E_PROTOCOL_MESSAGE_DIRECTION = E_PROTOCOL_MESSAGE_DIRECTION.RESPONSE
     code: str = ""
     code_nm: str = ""

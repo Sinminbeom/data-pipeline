@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class CloseState(abState):
-    """player 종료 + None reset. replayer 미러 — stop과 동일 동작."""
+    """player 종료 + None reset. stop과 동일 동작."""
     owner: StreamerModule
 
     def on_enter(self):

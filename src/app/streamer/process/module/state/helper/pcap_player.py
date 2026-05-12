@@ -22,7 +22,7 @@ class PcapPlayer:
         start() — 두 thread 시작
         pause() / resume() — sender 송출 일시정지/재개 (reader는 영향 없음)
         seek(start, end) — reader 교체 + pool clear + 재시작 (sender는 그대로)
-        stop() / close() — reader/sender 모두 join (replayer 미러 — 동일 동작)
+        stop() / close() — reader/sender 모두 join (둘 다 동일 동작)
     """
 
     def __init__(
@@ -112,7 +112,7 @@ class PcapPlayer:
         self._sender.join()
 
     def close(self) -> None:
-        """replayer 미러 — stop과 동일 동작."""
+        """stop과 동일 동작."""
         self.stop()
 
     def join(self) -> None:

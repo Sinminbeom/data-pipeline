@@ -72,7 +72,7 @@ class QueueControlProcess(StepProcess):
         )
 
     # ---------------------------
-    # INR group matcher (replayer 패턴 미러)
+    # INR group matcher
     # ---------------------------
     def enable_inr_matcher(self) -> QueueControlProcess:
         """builder. broadcast scatter-gather 그룹 콜백을 받을 process가 호출."""

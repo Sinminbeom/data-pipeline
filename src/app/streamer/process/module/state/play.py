@@ -16,9 +16,8 @@ if TYPE_CHECKING:
 class PlayState(abState):
     """Reader/Sender 2 thread + Pool buffer로 PCAP 재생.
 
-    Phase 2: PcapPlayer.start() → reader가 buffer threshold 도달하면 on_ready 발화
-            → INR_PLAY_REP OK 응답. sender는 background로 계속 송출.
-    실 동작 제어(Pause/Seek/Stop)는 Phase 3.
+    PcapPlayer.start() → reader가 buffer threshold 도달하면 on_ready 발화
+    → INR_PLAY_REP OK 응답. sender는 background로 계속 송출.
     """
     owner: StreamerModule
 
