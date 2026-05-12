@@ -38,8 +38,10 @@ class StreamerModule(QueueControlProcess):
     def on_init(self):
         super().on_init()
         config = ProjectConfig.instance()
-        self._storage_root = (config.storage_root or "").rstrip("/")
-        self._storage_prefix = (config.storage_prefix or "").strip("/")
+        # Streamer는 downloader가 채운 cache storage를 읽음.
+        # raw(원격)는 downloader만 접근하고, streamer는 항상 로컬 cache만 본다.
+        self._storage_root = (config.cache_storage_root or "").rstrip("/")
+        self._storage_prefix = (config.cache_storage_prefix or "").strip("/")
         self._storage = LocalStorageFactory(LocalStorageInfoFactory()).create_storage()
         self._storage.connect()
 
