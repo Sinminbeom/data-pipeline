@@ -4,10 +4,9 @@ from typing import Optional
 
 from common.process.imdg_bus_process import ImdgBusProcess
 from protocol.inr_protocol_matcher.inr_pair_state import E_PROTOCOL_PAIR_STATE
-from protocol.message.imdg.play import PlayReq, PlayRep
+from protocol.message.imdg.play import PlayReq
 from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
 from protocol.message.message import IMessage
-from protocol.message.process.play import InrPlayRep
 from protocol.section_element import SectionElementContainer
 
 from app.downloader.process.manager.state import (
@@ -134,8 +133,40 @@ class DownloaderManager(ImdgBusProcess):
         if self._state_component is not None:
             self._state_component.change_state(E_DOWNLOADER_MANAGER_STATE.DOWNLOAD, state_param_dto=packet)
 
-    def handle_play_response(self, packet: InrPlayRep) -> None:
-        raise NotImplementedError
+    def handle_play_response(self, packet) -> None:
+        # 매처 경로(handle_play_group_response)가 후처리 — 개별 handler는 no-op.
+        pass
+
+    def handle_play_group_response(self, pair_state: E_PROTOCOL_PAIR_STATE, packets: list[IMessage]) -> None:
+        """모든 모듈의 INR_PLAY_REP 도착 시 매처 인프라가 발화.
+
+        PLAY_REP 송신 + WAIT 복귀를 한 곳에서 수행.
+        InnerQueueListener thread에서 실행되지만:
+          - send_message_rep_imdg → redis-py thread-safe
+          - change_state → 다음 메인 loop frame에 적용되는 reservation
+        """
+        from process_category.enum_category import E_CATE
+        from protocol.protocol_code import E_CODE, make_response_info
+        from protocol.protocol_meta import E_PROTOCOL_ID
+        from protocol.protocol_owner import ProtocolOwner
+
+        bridge = ProtocolOwner.build(
+            E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE
+        )
+
+        if pair_state == E_PROTOCOL_PAIR_STATE.ERROR:
+            self.send_message_rep_imdg(
+                E_PROTOCOL_ID.PLAY_REP, bridge,
+                response=make_response_info(E_CODE.INVALID_REQUEST, "module error"),
+            )
+        else:
+            self.send_message_rep_imdg(
+                E_PROTOCOL_ID.PLAY_REP, bridge,
+                response=make_response_info(E_CODE.OK),
+            )
+
+        if self._state_component is not None:
+            self._state_component.change_state(E_DOWNLOADER_MANAGER_STATE.WAIT)
 
     def handle_pause_request(self, packet) -> None:
         raise NotImplementedError
