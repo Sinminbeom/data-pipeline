@@ -38,6 +38,10 @@ class FakePcapEnv:
     sensor_id_list: list[str]
     start_time: str
     end_time: str
+    raw_root: Path
+    raw_prefix: str
+    cache_root: Path
+    cache_prefix: str
 
 
 def _minimal_udp_ethernet_packet() -> bytes:
@@ -93,13 +97,21 @@ def _build_pcap_path(root: Path, prefix: str, sensor_id: str, when: datetime) ->
 
 @pytest.fixture(scope="session")
 def fake_pcaps() -> Iterator[FakePcapEnv]:
-    """fake PCAP 파일 set up + 세션 종료 시 cleanup."""
+    """fake PCAP 파일 set up + 세션 종료 시 cleanup.
+
+    cleanup 대상: raw(source) 디렉토리 + cache 디렉토리 — Downloader가 PLAY 흐름에서
+    raw → cache로 복사하므로 둘 다 정리해야 후속 test에 pollution 없음.
+    """
     ProjectConfig.set_config(str(REPO_ROOT / "conf/application.conf"))
     cfg = ProjectConfig.instance()
     root = Path(cfg.storage_root)
     prefix = cfg.storage_prefix or ""
 
-    vehicle_dir = root / prefix / _TEST_VEHICLE_ID
+    cache_root = Path(cfg.cache_storage_root)
+    cache_prefix = cfg.cache_storage_prefix or ""
+
+    raw_vehicle_dir = root / prefix / _TEST_VEHICLE_ID
+    cache_vehicle_dir = cache_root / cache_prefix / _TEST_VEHICLE_ID
 
     start_dt = datetime.strptime(_TEST_START, _TIMESTAMP_FORMAT)
     end_dt = datetime.strptime(_TEST_END, _TIMESTAMP_FORMAT)
@@ -116,7 +128,13 @@ def fake_pcaps() -> Iterator[FakePcapEnv]:
             sensor_id_list=list(_TEST_SENSORS),
             start_time=_TEST_START,
             end_time=_TEST_END,
+            raw_root=root,
+            raw_prefix=prefix,
+            cache_root=cache_root,
+            cache_prefix=cache_prefix,
         )
     finally:
-        if vehicle_dir.exists():
-            shutil.rmtree(vehicle_dir, ignore_errors=True)
+        if raw_vehicle_dir.exists():
+            shutil.rmtree(raw_vehicle_dir, ignore_errors=True)
+        if cache_vehicle_dir.exists():
+            shutil.rmtree(cache_vehicle_dir, ignore_errors=True)
