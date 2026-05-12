@@ -444,7 +444,7 @@ class ProtocolMeta:
             ),
         )
 
-        # INR_PAUSE_REQ → STREAMER (Module) / DOWNLOADER (Module)
+        # INR_PAUSE_REQ → STREAMER (Module) — DOWNLOADER 무관 (재생 흐름 전용)
         cls._register(
             E_PROTOCOL_ID.INR_PAUSE_REQ,
             ProtocolEntry(
@@ -456,7 +456,6 @@ class ProtocolMeta:
                 decoder=InrPauseReq.from_json,
                 receive_handlers={
                     E_CATE.STREAMER: ProtocolHandler.inr_pause_request,
-                    E_CATE.DOWNLOADER: ProtocolHandler.inr_pause_request,
                 },
             ),
         )
@@ -555,7 +554,7 @@ class ProtocolMeta:
             ),
         )
 
-        # INR_SEEK_REQ → STREAMER (Module) / DOWNLOADER (Module)
+        # INR_SEEK_REQ → STREAMER (Module) — DOWNLOADER 무관 (재생 흐름 전용)
         cls._register(
             E_PROTOCOL_ID.INR_SEEK_REQ,
             ProtocolEntry(
@@ -568,7 +567,6 @@ class ProtocolMeta:
                 decoder=InrSeekReq.from_json,
                 receive_handlers={
                     E_CATE.STREAMER: ProtocolHandler.inr_seek_request,
-                    E_CATE.DOWNLOADER: ProtocolHandler.inr_seek_request,
                 },
             ),
         )

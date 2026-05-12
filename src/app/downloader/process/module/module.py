@@ -123,12 +123,6 @@ class DownloaderModule(QueueControlProcess):
                 state_param_dto=packet,
             )
 
-    def handle_pause_request(self, packet) -> None:
-        raise NotImplementedError
-
-    def handle_seek_request(self, packet) -> None:
-        raise NotImplementedError
-
     def handle_close_request(self, packet: InrCloseReq) -> None:
         # 어느 state에서든 진입 허용 (streamer pattern 동일).
         if self._state_component is not None:
