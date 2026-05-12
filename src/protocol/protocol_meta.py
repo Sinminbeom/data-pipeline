@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Callable, Dict, Mapping, ClassVar
 
-from python_library.process.process import abProcess
+from python_library.process.process import IProcess
 
 from protocol.inr_protocol_matcher.inr_pair_state import E_PROTOCOL_PAIR_STATE
 from protocol.message.message import IMessage
@@ -13,8 +13,8 @@ from protocol.protocol_wrapper import ProtocolWrapper
 ReceiverKey = Any
 FactoryFn = Callable[..., IMessage]
 DecoderFn = Callable[[str], IMessage]
-HandlerFn = Callable[[abProcess, ProtocolWrapper, IMessage], Any]
-GroupHandlerFn = Callable[[abProcess, E_PROTOCOL_PAIR_STATE, list[IMessage]], Any]
+HandlerFn = Callable[[IProcess, ProtocolWrapper, IMessage], Any]
+GroupHandlerFn = Callable[[IProcess, E_PROTOCOL_PAIR_STATE, list[IMessage]], Any]
 
 
 class E_PROTOCOL_ID(Enum):
@@ -182,8 +182,8 @@ class ProtocolMeta:
                 ),
                 decoder=PlayableListReq.from_json,
                 receive_handlers={
-                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.playable_list_request,
-                    E_CATE.DOWNLOADER: ProtocolHandler.playable_list_request,
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.bridge_playable_list_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.downloader_playable_list_request,
                 },
             ),
         )
@@ -202,7 +202,7 @@ class ProtocolMeta:
                 ),
                 decoder=PlayableListRep.from_json,
                 receive_handlers={
-                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.playable_list_response,
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.bridge_playable_list_response,
                 },
             ),
         )
@@ -221,7 +221,7 @@ class ProtocolMeta:
                 ),
                 decoder=InrPlayableListReq.from_json,
                 receive_handlers={
-                    E_CATE.DOWNLOADER: ProtocolHandler.inr_playable_list_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_downloader_playable_list_request,
                 },
             ),
         )
@@ -240,10 +240,10 @@ class ProtocolMeta:
                 ),
                 decoder=InrPlayableListRep.from_json,
                 receive_handlers={
-                    E_CATE.DOWNLOADER: ProtocolHandler.inr_playable_list_response,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_downloader_playable_list_response,
                 },
                 inr_group_receive_handlers={
-                    E_CATE.DOWNLOADER: ProtocolHandler.inr_playable_list_response_group,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_downloader_playable_list_response_group,
                 },
             ),
         )
@@ -306,9 +306,9 @@ class ProtocolMeta:
                 ),
                 decoder=PlayReq.from_json,
                 receive_handlers={
-                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.play_request,
-                    E_CATE.STREAMER: ProtocolHandler.play_request,
-                    E_CATE.DOWNLOADER: ProtocolHandler.play_request,
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.bridge_play_request,
+                    E_CATE.STREAMER: ProtocolHandler.streamer_play_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.downloader_play_request,
                 },
             ),
         )
@@ -325,7 +325,7 @@ class ProtocolMeta:
                 ),
                 decoder=PlayRep.from_json,
                 receive_handlers={
-                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.play_response,
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.bridge_play_response,
                 },
             ),
         )
@@ -345,8 +345,8 @@ class ProtocolMeta:
                 ),
                 decoder=InrPlayReq.from_json,
                 receive_handlers={
-                    E_CATE.STREAMER: ProtocolHandler.inr_play_request,
-                    E_CATE.DOWNLOADER: ProtocolHandler.inr_play_request,
+                    E_CATE.STREAMER: ProtocolHandler.inr_streamer_play_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_downloader_play_request,
                 },
             ),
         )
@@ -363,12 +363,12 @@ class ProtocolMeta:
                 ),
                 decoder=InrPlayRep.from_json,
                 receive_handlers={
-                    E_CATE.STREAMER: ProtocolHandler.inr_play_response,
-                    E_CATE.DOWNLOADER: ProtocolHandler.inr_play_response,
+                    E_CATE.STREAMER: ProtocolHandler.inr_streamer_play_response,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_downloader_play_response,
                 },
                 inr_group_receive_handlers={
-                    E_CATE.STREAMER: ProtocolHandler.inr_play_response_group,
-                    E_CATE.DOWNLOADER: ProtocolHandler.inr_play_response_group,
+                    E_CATE.STREAMER: ProtocolHandler.inr_streamer_play_response_group,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_downloader_play_response_group,
                 },
             ),
         )
@@ -421,8 +421,8 @@ class ProtocolMeta:
                 ),
                 decoder=PauseReq.from_json,
                 receive_handlers={
-                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.pause_request,
-                    E_CATE.STREAMER: ProtocolHandler.pause_request,
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.bridge_pause_request,
+                    E_CATE.STREAMER: ProtocolHandler.streamer_pause_request,
                 },
             ),
         )
@@ -439,7 +439,7 @@ class ProtocolMeta:
                 ),
                 decoder=PauseRep.from_json,
                 receive_handlers={
-                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.pause_response,
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.bridge_pause_response,
                 },
             ),
         )
@@ -455,7 +455,7 @@ class ProtocolMeta:
                 ),
                 decoder=InrPauseReq.from_json,
                 receive_handlers={
-                    E_CATE.STREAMER: ProtocolHandler.inr_pause_request,
+                    E_CATE.STREAMER: ProtocolHandler.inr_streamer_pause_request,
                 },
             ),
         )
@@ -472,11 +472,10 @@ class ProtocolMeta:
                 ),
                 decoder=InrPauseRep.from_json,
                 receive_handlers={
-                    E_CATE.STREAMER: ProtocolHandler.inr_pause_response,
-                    E_CATE.DOWNLOADER: ProtocolHandler.inr_pause_response,
+                    E_CATE.STREAMER: ProtocolHandler.inr_streamer_pause_response,
                 },
                 inr_group_receive_handlers={
-                    E_CATE.STREAMER: ProtocolHandler.inr_pause_response_group,
+                    E_CATE.STREAMER: ProtocolHandler.inr_streamer_pause_response_group,
                 },
             ),
         )
@@ -531,8 +530,8 @@ class ProtocolMeta:
                 ),
                 decoder=SeekReq.from_json,
                 receive_handlers={
-                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.seek_request,
-                    E_CATE.STREAMER: ProtocolHandler.seek_request,
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.bridge_seek_request,
+                    E_CATE.STREAMER: ProtocolHandler.streamer_seek_request,
                 },
             ),
         )
@@ -549,7 +548,7 @@ class ProtocolMeta:
                 ),
                 decoder=SeekRep.from_json,
                 receive_handlers={
-                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.seek_response,
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.bridge_seek_response,
                 },
             ),
         )
@@ -566,7 +565,7 @@ class ProtocolMeta:
                 ),
                 decoder=InrSeekReq.from_json,
                 receive_handlers={
-                    E_CATE.STREAMER: ProtocolHandler.inr_seek_request,
+                    E_CATE.STREAMER: ProtocolHandler.inr_streamer_seek_request,
                 },
             ),
         )
@@ -583,11 +582,10 @@ class ProtocolMeta:
                 ),
                 decoder=InrSeekRep.from_json,
                 receive_handlers={
-                    E_CATE.STREAMER: ProtocolHandler.inr_seek_response,
-                    E_CATE.DOWNLOADER: ProtocolHandler.inr_seek_response,
+                    E_CATE.STREAMER: ProtocolHandler.inr_streamer_seek_response,
                 },
                 inr_group_receive_handlers={
-                    E_CATE.STREAMER: ProtocolHandler.inr_seek_response_group,
+                    E_CATE.STREAMER: ProtocolHandler.inr_streamer_seek_response_group,
                 },
             ),
         )
@@ -640,9 +638,9 @@ class ProtocolMeta:
                 ),
                 decoder=CloseReq.from_json,
                 receive_handlers={
-                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.close_request,
-                    E_CATE.STREAMER: ProtocolHandler.close_request,
-                    E_CATE.DOWNLOADER: ProtocolHandler.close_request,
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.bridge_close_request,
+                    E_CATE.STREAMER: ProtocolHandler.streamer_close_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.downloader_close_request,
                 },
             ),
         )
@@ -659,7 +657,7 @@ class ProtocolMeta:
                 ),
                 decoder=CloseRep.from_json,
                 receive_handlers={
-                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.close_response,
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.bridge_close_response,
                 },
             ),
         )
@@ -675,8 +673,8 @@ class ProtocolMeta:
                 ),
                 decoder=InrCloseReq.from_json,
                 receive_handlers={
-                    E_CATE.STREAMER: ProtocolHandler.inr_close_request,
-                    E_CATE.DOWNLOADER: ProtocolHandler.inr_close_request,
+                    E_CATE.STREAMER: ProtocolHandler.inr_streamer_close_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_downloader_close_request,
                 },
             ),
         )
@@ -693,12 +691,12 @@ class ProtocolMeta:
                 ),
                 decoder=InrCloseRep.from_json,
                 receive_handlers={
-                    E_CATE.STREAMER: ProtocolHandler.inr_close_response,
-                    E_CATE.DOWNLOADER: ProtocolHandler.inr_close_response,
+                    E_CATE.STREAMER: ProtocolHandler.inr_streamer_close_response,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_downloader_close_response,
                 },
                 inr_group_receive_handlers={
-                    E_CATE.STREAMER: ProtocolHandler.inr_close_response_group,
-                    E_CATE.DOWNLOADER: ProtocolHandler.inr_close_response_group,
+                    E_CATE.STREAMER: ProtocolHandler.inr_streamer_close_response_group,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_downloader_close_response_group,
                 },
             ),
         )
@@ -751,9 +749,9 @@ class ProtocolMeta:
                 ),
                 decoder=StopReq.from_json,
                 receive_handlers={
-                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.stop_request,
-                    E_CATE.STREAMER: ProtocolHandler.stop_request,
-                    E_CATE.DOWNLOADER: ProtocolHandler.stop_request,
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.bridge_stop_request,
+                    E_CATE.STREAMER: ProtocolHandler.streamer_stop_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.downloader_stop_request,
                 },
             ),
         )
@@ -770,7 +768,7 @@ class ProtocolMeta:
                 ),
                 decoder=StopRep.from_json,
                 receive_handlers={
-                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.stop_response,
+                    E_CATE.MESSAGE_BRIDGE: ProtocolHandler.bridge_stop_response,
                 },
             ),
         )
@@ -786,8 +784,8 @@ class ProtocolMeta:
                 ),
                 decoder=InrStopReq.from_json,
                 receive_handlers={
-                    E_CATE.STREAMER: ProtocolHandler.inr_stop_request,
-                    E_CATE.DOWNLOADER: ProtocolHandler.inr_stop_request,
+                    E_CATE.STREAMER: ProtocolHandler.inr_streamer_stop_request,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_downloader_stop_request,
                 },
             ),
         )
@@ -804,12 +802,12 @@ class ProtocolMeta:
                 ),
                 decoder=InrStopRep.from_json,
                 receive_handlers={
-                    E_CATE.STREAMER: ProtocolHandler.inr_stop_response,
-                    E_CATE.DOWNLOADER: ProtocolHandler.inr_stop_response,
+                    E_CATE.STREAMER: ProtocolHandler.inr_streamer_stop_response,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_downloader_stop_response,
                 },
                 inr_group_receive_handlers={
-                    E_CATE.STREAMER: ProtocolHandler.inr_stop_response_group,
-                    E_CATE.DOWNLOADER: ProtocolHandler.inr_stop_response_group,
+                    E_CATE.STREAMER: ProtocolHandler.inr_streamer_stop_response_group,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_downloader_stop_response_group,
                 },
             ),
         )
