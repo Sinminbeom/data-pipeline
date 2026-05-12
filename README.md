@@ -4,7 +4,7 @@
 
 ## 개요
 
-차량에 장착된 센서로부터 데이터를 수신하고, UI 클라이언트의 요청에 따라 센서 데이터를 다운로드·제공하는 파이프라인입니다. 3개의 독립 프로세스(`REST Server`, `Message Bridge`, `Downloader`)가 Redis pub/sub을 통해 통신합니다.
+차량에 장착된 센서로부터 데이터를 수신하고, UI 클라이언트의 요청에 따라 센서 데이터를 다운로드·재생(UDP 송출)하는 파이프라인입니다. 4개의 독립 프로세스(`REST Server`, `Message Bridge`, `Downloader`, `Streamer`)가 Redis pub/sub을 통해 통신합니다.
 
 ## 아키텍처
 
@@ -16,19 +16,37 @@ flowchart TB
 
     subgraph DL[Downloader]
         direction TB
-        MGR[Downloader Manager]
-        LIDAR[LiDAR Module × 8]
-        GNSS[GNSS Module × 1]
-        CAM[Camera Module × 10]
-        MGR <-->|Inner Queue| LIDAR
-        MGR <-->|Inner Queue| GNSS
-        MGR <-->|Inner Queue| CAM
+        DMGR[Downloader Manager]
+        DLIDAR[LiDAR Module × 8]
+        DGNSS[GNSS Module × 1]
+        DCAM[Camera Module × 10]
+        DMGR <-->|Inner Queue| DLIDAR
+        DMGR <-->|Inner Queue| DGNSS
+        DMGR <-->|Inner Queue| DCAM
     end
+
+    subgraph ST[Streamer]
+        direction TB
+        SMGR[Streamer Manager]
+        SLIDAR[LiDAR Module × 8]
+        SGNSS[GNSS Module × 1]
+        SCAM[Camera Module × 10]
+        SMGR <-->|Inner Queue| SLIDAR
+        SMGR <-->|Inner Queue| SGNSS
+        SMGR <-->|Inner Queue| SCAM
+    end
+
+    SINK([Sensor Sink<br/>UDP])
 
     UI <-->|Socket.IO message| REST
     REST <-->|Redis pub/sub| MB
-    MB <-->|Redis pub/sub| MGR
+    MB <-->|Redis pub/sub| DMGR
+    MB <-->|Redis pub/sub| SMGR
+    ST -->|UDP sendto| SINK
 ```
+
+- **Downloader**: storage(LocalStorage / 추후 S3)에서 pcap 등 원본 데이터를 받아 로컬 캐시에 저장
+- **Streamer**: 로컬 캐시의 pcap을 읽어 센서별 IP/PORT로 UDP 송출 (Play/Pause/Seek/Stop/Close 상태 머신)
 
 ## 지원 센서
 
@@ -67,22 +85,26 @@ data-pipeline/
 ├── src/
 │   ├── app/
 │   │   ├── downloader/            # 다운로더 프로세스 (manager + sensor modules)
+│   │   ├── streamer/              # 스트리머 프로세스 (manager + sensor modules, state machine)
 │   │   ├── message_bridge/        # 메시지 브릿지 프로세스
-│   │   └── rest/                  # REST / WebSocket 프로세스
+│   │   ├── rest/                  # REST / WebSocket 프로세스
+│   │   └── app_object.py          # 멀티프로세스 app 베이스
 │   ├── common/
 │   │   ├── event_bus/             # Redis / 내부 큐 이벤트 버스
 │   │   └── process/               # 프로세스 베이스 클래스
 │   ├── config/                    # 설정 로더
 │   ├── define/                    # 통신 타입 Enum
+│   ├── pcaps/                     # PCAP reader/pool/packet (Streamer가 사용)
 │   ├── process_category/          # 프로세스 카테고리 레지스트리
 │   ├── sensor_category/           # 센서 enum + sensor_id ↔ category 매핑
-│   ├── protocol/                  # 메시지 프로토콜 정의
+│   ├── protocol/                  # 메시지 프로토콜 정의 (playable_list/play/pause/seek/close/stop)
 │   ├── utils/                     # 공통 유틸리티
 │   ├── rest_server_app.py         # REST 서버 진입점
 │   ├── message_bridge_app.py      # 메시지 브릿지 진입점
-│   └── downloader_app.py          # 다운로더 진입점
+│   ├── downloader_app.py          # 다운로더 진입점
+│   └── streamer_app.py            # 스트리머 진입점
 └── tests/
-    ├── test_client/               # socket.io 클라이언트 통합 테스트
+    ├── test_client/               # socket.io 클라이언트 통합 테스트 (시나리오별 분할)
     ├── test_process_category/
     └── test_state/
 ```
@@ -113,6 +135,14 @@ uv sync --dev
 PROJECT_NAME = data-pipeline
 CHANNEL_NAME = test           ; Redis pub/sub 채널명
 
+[STORAGE]
+ROOT = /home/.../data-pipeline/data   ; LocalStorage 루트 (원본 소스 — 운영 시 S3/MinIO 대체 예정)
+PREFIX = raw
+
+[STORAGE_CACHE]
+ROOT = /home/.../data-pipeline/data   ; Downloader가 받은 데이터를 저장하는 로컬 캐시
+PREFIX = cache                ; Streamer는 후속 phase에서 이 경로를 읽음
+
 [IMDG]
 SERVER_IP = 127.0.0.1         ; Redis 호스트
 SERVER_PORT = 6379            ; Redis 포트
@@ -127,9 +157,19 @@ BIND_PORT = 9999              ; WebSocket 서버 포트
 STREAM_NAME = downloader_tasks
 GROUP_NAME = downloader_group
 
-[STORAGE]
-ROOT = /home/.../data-pipeline/data   ; LocalStorage 루트
-PREFIX = raw
+[STREAM_OUTPUT]
+; 센서별 UDP 송출 대상 (키 형식: <SENSOR_NAME>_IP / <SENSOR_NAME>_PORT)
+AT128_ROOF_FRONT_IP   = 192.168.20.100
+AT128_ROOF_FRONT_PORT = 2368
+GNSS_IP   = 192.168.20.100
+GNSS_PORT = 5000
+; ... (다른 센서)
+
+[PLAYER]
+BUFFER_SIZE = 1000            ; PCAP 재생 버퍼 크기
+READER_BUFFERING_TIME = 2     ; reader가 미리 채워두는 시간(초)
+FILE_REFIND_COUNT = 3
+FILE_REFIND_SLEEP_TIME = 0.1
 ```
 
 ### 스토리지 레이아웃
@@ -144,7 +184,7 @@ PREFIX = raw
 
 ## 실행
 
-3개 프로세스를 각각 별도 터미널에서 실행합니다.
+4개 프로세스를 각각 별도 터미널에서 실행합니다.
 
 ```bash
 # 1. REST 서버
@@ -155,9 +195,12 @@ uv run python src/message_bridge_app.py
 
 # 3. 다운로더
 uv run python src/downloader_app.py
+
+# 4. 스트리머
+uv run python src/streamer_app.py
 ```
 
-또는 [scripts/dev.sh](scripts/dev.sh)로 한 번에 띄우기:
+또는 [scripts/dev.sh](scripts/dev.sh)로 4개 프로세스를 띄우고 test_client 시나리오까지 한 번에 실행:
 
 ```bash
 ./scripts/dev.sh
@@ -178,14 +221,25 @@ uv run python scripts/seed_storage.py \
     --start 20240101120000 \
     --end 20240101120300
 
-# 2. 3 프로세스 띄우기 (위 "실행" 섹션 참고)
+# 2. 4 프로세스 띄우기 (위 "실행" 섹션 참고)
 
-# 3. 테스트 클라이언트 (PD_PLAYABLE_LIST_REQ 송신 + 응답 수신/검증)
-uv run pytest tests/test_client/test_client.py -v -s
+# 3. 시나리오별 테스트 클라이언트 (Socket.IO 송수신 + UDP 수신 검증)
+uv run pytest tests/test_client/test_playable_list.py -v -s
+uv run pytest tests/test_client/test_play.py         -v -s
+uv run pytest tests/test_client/test_pause.py        -v -s
+uv run pytest tests/test_client/test_seek.py         -v -s
+uv run pytest tests/test_client/test_close.py        -v -s
+uv run pytest tests/test_client/test_stop.py         -v -s
+# UDP 송출까지 검증하는 lifecycle 시나리오
+uv run pytest tests/test_client/test_pause_udp.py    -v -s
+uv run pytest tests/test_client/test_stop_udp.py     -v -s
+uv run pytest tests/test_client/test_close_udp.py    -v -s
 
 # 4. 정리
 uv run python scripts/seed_storage.py --clean
 ```
+
+`scripts/dev.sh`는 위 시나리오들을 4 프로세스 기동과 함께 한 번에 실행합니다.
 
 ## 개발
 
@@ -242,8 +296,15 @@ UI 클라이언트는 Socket.IO `message` 이벤트로 JSON 메시지를 전송�
 |---|---|---|
 | `PD_100` (PD_PLAYABLE_LIST_REQ) | UI → REST | 재생 가능한 센서 데이터 목록 요청 |
 | `PD_101` (PD_PLAYABLE_LIST_REP) | REST → UI | 모든 요청 센서가 동시에 보유한 시간 구간 (1초 단위 교집합) |
+| `PD_200` / `PD_201` (PLAY)       | UI ↔ REST | 재생 시작 — Streamer가 UDP 송출 개시 |
+| `PD_400` / `PD_401` (PAUSE)      | UI ↔ REST | 일시정지 |
+| `PD_500` / `PD_501` (SEEK)       | UI ↔ REST | 특정 timestamp로 이동 |
+| `PD_300` / `PD_301` (CLOSE)      | UI ↔ REST | 세션 종료 |
+| `PD_600` / `PD_601` (STOP)       | UI ↔ REST | 재생 중지 |
 
 `section_list`의 각 element는 `[startTime, endTime]` 1초 단위 연속 구간 — 모든 요청 센서가 그 구간에 데이터를 가지고 있음을 보장.
+
+내부적으로 각 `PD_*` 외부 프로토콜은 IMDG(Redis pub/sub) 단계의 `숫자` 프로토콜과 sensor module 단계의 `-숫자` (INR_) 프로토콜로 fan-out 됩니다. 정의는 [src/protocol/protocol_meta.py](src/protocol/protocol_meta.py)의 `E_PROTOCOL_ID`를 참조하세요.
 
 ## 흐름 요약
 
