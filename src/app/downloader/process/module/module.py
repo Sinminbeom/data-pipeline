@@ -23,6 +23,9 @@ class DownloaderModule(QueueControlProcess):
         self._storage: Optional[IStorage] = None
         self._storage_root: str = ""
         self._storage_prefix: str = ""
+        self._cache_storage: Optional[IStorage] = None
+        self._cache_storage_root: str = ""
+        self._cache_storage_prefix: str = ""
 
     def on_init(self):
         super().on_init()
@@ -31,6 +34,11 @@ class DownloaderModule(QueueControlProcess):
         self._storage_prefix = (config.storage_prefix or "").strip("/")
         self._storage = LocalStorageFactory(LocalStorageInfoFactory()).create_storage()
         self._storage.connect()
+
+        self._cache_storage_root = (config.cache_storage_root or "").rstrip("/")
+        self._cache_storage_prefix = (config.cache_storage_prefix or "").strip("/")
+        self._cache_storage = LocalStorageFactory(LocalStorageInfoFactory()).create_storage()
+        self._cache_storage.connect()
 
         self.set_state_component(
             build_state_map(),
@@ -54,6 +62,15 @@ class DownloaderModule(QueueControlProcess):
 
     def get_storage_prefix(self) -> str:
         return self._storage_prefix
+
+    def get_cache_storage(self) -> Optional[IStorage]:
+        return self._cache_storage
+
+    def get_cache_storage_root(self) -> str:
+        return self._cache_storage_root
+
+    def get_cache_storage_prefix(self) -> str:
+        return self._cache_storage_prefix
 
     def handle_playable_list_request(self, packet: InrPlayableListReq) -> None:
         from process_category.enum_category import E_CATE

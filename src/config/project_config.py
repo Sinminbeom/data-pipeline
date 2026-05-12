@@ -13,6 +13,7 @@ class ProjectConfig(AppConfig):
         REST = "REST"
         STREAM = "STREAM"
         STORAGE = "STORAGE"
+        STORAGE_CACHE = "STORAGE_CACHE"
         STREAM_OUTPUT = "STREAM_OUTPUT"
         PLAYER = "PLAYER"
 
@@ -91,6 +92,15 @@ class ProjectConfig(AppConfig):
         )
         self.storage_prefix = self.get_config(
             ProjectConfig.E_CATE_TYPE.STORAGE, ProjectConfig.E_CATE_ELE_STORAGE.PREFIX
+        )
+
+        # Cache storage: downloader가 source에서 받아 저장하는 로컬 경로.
+        # 키 형식은 STORAGE와 동일(ROOT/PREFIX)이라 E_CATE_ELE_STORAGE를 재사용.
+        self.cache_storage_root = self.get_config(
+            ProjectConfig.E_CATE_TYPE.STORAGE_CACHE, ProjectConfig.E_CATE_ELE_STORAGE.ROOT
+        )
+        self.cache_storage_prefix = self.get_config(
+            ProjectConfig.E_CATE_TYPE.STORAGE_CACHE, ProjectConfig.E_CATE_ELE_STORAGE.PREFIX
         )
 
         # Player buffer 설정
