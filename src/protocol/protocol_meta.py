@@ -368,6 +368,7 @@ class ProtocolMeta:
                 },
                 inr_group_receive_handlers={
                     E_CATE.STREAMER: ProtocolHandler.inr_play_response_group,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_play_response_group,
                 },
             ),
         )

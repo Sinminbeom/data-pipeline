@@ -44,6 +44,12 @@ class StreamerManager(ImdgBusProcess):
         from protocol.protocol_meta import E_PROTOCOL_ID
         from protocol.protocol_owner import ProtocolOwner
 
+        # BRIDGE-orchestrated 흐름만 처리. REST 직접 broadcast나 타 receiver 무시.
+        if not ProtocolOwner.is_owner(packet.sender, E_CATE.MESSAGE_BRIDGE):
+            return
+        if not ProtocolOwner.is_owner(packet.receiver, E_CATE.STREAMER):
+            return
+
         if self.get_current_state_id() != E_STREAMER_MANAGER_STATE.WAIT:
             self.send_message_rep_imdg(
                 E_PROTOCOL_ID.PLAY_REP,

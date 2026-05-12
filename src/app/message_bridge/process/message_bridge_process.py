@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional
+
 from common.process.imdg_bus_process import ImdgBusProcess
 from protocol.message.imdg.close import CloseReq, CloseRep
 from protocol.message.imdg.pause import PauseReq, PauseRep
@@ -9,12 +11,16 @@ from protocol.message.imdg.stop import StopReq, StopRep
 from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
 from protocol.message.message import ResponseInfo
 from protocol.protocol_meta import E_PROTOCOL_ID, ProtocolMeta
+from protocol.protocol_owner import ProtocolOwner
 from protocol.protocol_wrapper import ProtocolWrapper
 
 
 class MessageBridgeProcess(ImdgBusProcess):
     def __init__(self, app_name, process_name):
         super().__init__(app_name, process_name)
+        # PLAY_REQ 직렬화 상태 — REST→DOWNLOADER→STREAMER 흐름 사이에 보관.
+        # single-flight 가정 (동시에 하나의 PLAY_REQ만 진행).
+        self._pending_play_req: Optional[PlayReq] = None
 
     def handle_playable_list_request(self, packet: PlayableListReq) -> None:
         from process_category.enum_category import E_CATE
@@ -74,25 +80,75 @@ class MessageBridgeProcess(ImdgBusProcess):
         self.send_message_imdg(envelope)
 
     def handle_play_request(self, packet: PlayReq) -> None:
-        # PLAY_REQ는 STREAMER도 broadcast로 받으므로 BRIDGE는 forward 불필요 — no-op.
-        pass
+        """REST에서 받은 PLAY_REQ를 DOWNLOADER에 forward (직렬화 시작).
+
+        STREAMER에는 DOWNLOADER 완료(handle_play_response) 후 forward.
+        BRIDGE 자신이 send한 PLAY_REQ도 receive_handlers로 dispatch되므로 sender로 필터.
+        """
+        from process_category.enum_category import E_CATE
+
+        if not ProtocolOwner.is_owner(packet.sender, E_CATE.REST_SERVER):
+            # REST 외 sender(BRIDGE 자신의 forward 등)는 무시.
+            return
+
+        self._pending_play_req = packet
+        self.__forward_play_req(packet, target_app=E_CATE.DOWNLOADER,
+                                target_proc=E_CATE.E_DOWNLOADER.E_COMMON.DOWNLOAD_MANAGER)
 
     def handle_play_response(self, packet: PlayRep) -> None:
-        """STREAMER → MESSAGE_BRIDGE로 들어온 PLAY_REP를 PD_PLAY_REP로 변환해 REST_SERVER로 IMDG 송신."""
+        """PLAY_REP 분기:
+        - DOWNLOADER 발신 + OK → STREAMER에 PLAY_REQ forward
+        - DOWNLOADER 발신 + ERROR → REST에 PD_PLAY_REP error forward (STREAMER skip)
+        - STREAMER 발신 → REST에 PD_PLAY_REP forward (최종 응답)
+        """
         from process_category.enum_category import E_CATE
-        from protocol.protocol_owner import ProtocolOwner
 
         response: ResponseInfo = packet.response or ResponseInfo()
+
+        if ProtocolOwner.is_owner(packet.sender, E_CATE.DOWNLOADER):
+            # 에러면 STREAMER 트리거 안 하고 즉시 REST로 응답.
+            if response.code != "OK":
+                self._pending_play_req = None
+                self.__forward_pd_play_rep(response)
+                return
+
+            pending = self._pending_play_req
+            if pending is None:
+                # 방어적: state 유실 — 그래도 STREAMER에 보낼 정보가 없으므로 error 응답.
+                self.__forward_pd_play_rep(ResponseInfo(code="ERROR", code_nm="ERROR",
+                                                       reason="pending play_req lost"))
+                return
+
+            self.__forward_play_req(pending, target_app=E_CATE.STREAMER,
+                                    target_proc=E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
+            return
+
+        # STREAMER → REST 최종 forward.
+        self._pending_play_req = None
+        self.__forward_pd_play_rep(response)
+
+    def __forward_play_req(self, source: PlayReq, target_app: str, target_proc: str) -> None:
+        sender = ProtocolOwner.build(self.get_app_name(), self.name)
+        receiver = ProtocolOwner.build(target_app, target_proc)
+        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PLAY_REQ)
+        fwd_packet = factory(
+            sender, receiver,
+            source.section_id, source.vehicle_id, source.sensor_id_list,
+            source.start_time, source.end_time,
+        )
+        envelope = ProtocolWrapper.get_protocol_wrapper(fwd_packet).get_protocol_packet_message()
+        self.send_message_imdg(envelope)
+
+    def __forward_pd_play_rep(self, response: ResponseInfo) -> None:
+        from process_category.enum_category import E_CATE
+
         receiver = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
         factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PD_PLAY_REP)
         sender = ProtocolOwner.build(self.get_app_name(), self.name)
 
         fwd_packet = factory(
-            sender,
-            receiver,
-            response.code,
-            response.code_nm,
-            response.reason,
+            sender, receiver,
+            response.code, response.code_nm, response.reason,
         )
         envelope = ProtocolWrapper.get_protocol_wrapper(fwd_packet).get_protocol_packet_message()
         self.send_message_imdg(envelope)
