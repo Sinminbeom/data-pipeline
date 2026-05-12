@@ -5,8 +5,8 @@ from tests.test_client._udp_helper import validate_lifecycle_stops_udp
 def test_close_stops_udp(fake_pcaps):
     """Play 중 UDP packet 도착 → PD_CLOSE → packet 멈춤 검증.
 
-    Close는 player.close() (= stop과 동일 동작, replayer 미러). reader/sender
-    모두 join되어 송출 중단됨을 e2e로 확인.
+    Close는 player.close() (= stop과 동일 동작). reader/sender 모두 join되어
+    송출 중단됨을 e2e로 확인.
     """
     validate_lifecycle_stops_udp(
         fake_pcaps,

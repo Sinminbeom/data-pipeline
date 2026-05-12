@@ -4,7 +4,7 @@ from tests.test_client._lifecycle_helper import run_lifecycle_scenario
 def test_play_then_close(fake_pcaps):
     """PlayableList → Play → Close 시나리오.
 
-    Close는 reader/sender thread를 모두 join — Stop과 동일 동작 (replayer 미러).
+    Close는 reader/sender thread를 모두 join — Stop과 동일 동작.
     """
     result = run_lifecycle_scenario(
         vehicle_id=fake_pcaps.vehicle_id,

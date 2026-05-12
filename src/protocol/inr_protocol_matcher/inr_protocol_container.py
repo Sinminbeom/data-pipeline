@@ -18,7 +18,7 @@ class InrProtocolContainer:
 
     def append(self, packet: IMessage) -> None:
         self._responses.append(packet)
-        # response.code가 OK가 아니면 에러로 간주 (replayer ERROR 패턴)
+        # response.code가 OK가 아니면 에러로 간주
         if packet.response is not None and packet.response.code not in ("", "OK"):
             self._has_error = True
 

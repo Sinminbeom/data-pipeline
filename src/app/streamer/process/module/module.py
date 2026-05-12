@@ -88,11 +88,7 @@ class StreamerModule(QueueControlProcess):
             )
 
     def handle_pause_request(self, packet: InrPauseReq) -> None:
-        from process_category.enum_category import E_CATE
-        from protocol.protocol_code import E_CODE, make_response_info
-        from protocol.protocol_meta import E_PROTOCOL_ID
-
-        # placeholder — 실제 GStreamer pause 흐름 미이식. 어떤 state든 일단 PAUSE 진입 후 즉시 OK.
+        # 어느 state에서든 PAUSE 진입 허용.
         if self._state_component is not None:
             self._state_component.change_state(
                 E_STREAMER_MODULE_STATE.PAUSE,
@@ -100,7 +96,7 @@ class StreamerModule(QueueControlProcess):
             )
 
     def handle_seek_request(self, packet: InrSeekReq) -> None:
-        # placeholder — 실제 GStreamer seek 흐름 미이식. 어떤 state든 일단 SEEK 진입 후 즉시 OK.
+        # 어느 state에서든 SEEK 진입 허용.
         if self._state_component is not None:
             self._state_component.change_state(
                 E_STREAMER_MODULE_STATE.SEEK,
@@ -108,7 +104,7 @@ class StreamerModule(QueueControlProcess):
             )
 
     def handle_close_request(self, packet: InrCloseReq) -> None:
-        # placeholder — 실제 GStreamer close 흐름 미이식. 어떤 state든 일단 CLOSE 진입 후 즉시 OK.
+        # 어느 state에서든 CLOSE 진입 허용.
         if self._state_component is not None:
             self._state_component.change_state(
                 E_STREAMER_MODULE_STATE.CLOSE,
@@ -116,7 +112,7 @@ class StreamerModule(QueueControlProcess):
             )
 
     def handle_stop_request(self, packet: InrStopReq) -> None:
-        # placeholder — 실제 GStreamer stop 흐름 미이식. 어떤 state든 일단 STOP 진입 후 즉시 OK.
+        # 어느 state에서든 STOP 진입 허용.
         if self._state_component is not None:
             self._state_component.change_state(
                 E_STREAMER_MODULE_STATE.STOP,

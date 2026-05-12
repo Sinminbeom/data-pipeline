@@ -290,7 +290,7 @@ class ProtocolMeta:
             ),
         )
 
-        # PLAY_REQ → BRIDGE / STREAMER / DOWNLOADER (replayer broadcast 패턴)
+        # PLAY_REQ → BRIDGE / STREAMER / DOWNLOADER (broadcast dispatch — BRIDGE 외엔 sender filter로 차단)
         cls._register(
             E_PROTOCOL_ID.PLAY_REQ,
             ProtocolEntry(

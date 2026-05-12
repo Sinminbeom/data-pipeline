@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 class StopState(abState):
-    """진행 중 DownloadThread 정지 + None reset. Close와 동일 동작 (replayer 미러)."""
+    """진행 중 DownloadThread 정지 + None reset. Close와 동일 동작."""
     owner: DownloaderModule
 
     def on_enter(self):
