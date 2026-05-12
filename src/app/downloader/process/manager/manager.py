@@ -6,7 +6,8 @@ from common.process.imdg_bus_process import ImdgBusProcess
 from protocol.inr_protocol_matcher.inr_pair_state import E_PROTOCOL_PAIR_STATE
 from protocol.message.imdg.close import CloseReq
 from protocol.message.imdg.play import PlayReq
-from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
+from protocol.message.imdg.playable_list import PlayableListReq
+from protocol.message.process.playable_list import InrPlayableListRep
 from protocol.message.imdg.stop import StopReq
 from protocol.message.message import IMessage
 from protocol.section_element import SectionElementContainer
@@ -59,7 +60,7 @@ class DownloaderManager(ImdgBusProcess):
         if self._state_component is not None:
             self._state_component.change_state(E_DOWNLOADER_MANAGER_STATE.PLAYABLE, state_param_dto=packet)
 
-    def handle_playable_list_response(self, packet: PlayableListRep) -> None:
+    def handle_playable_list_response(self, packet: InrPlayableListRep) -> None:
         # 매처 경로(handle_playable_list_group_response)가 후처리 담당 — 개별 handler는 no-op.
         pass
 
