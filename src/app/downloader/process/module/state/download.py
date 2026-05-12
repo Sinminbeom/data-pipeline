@@ -61,6 +61,8 @@ class DownloadState(abState):
             start_time=self.state_param_dto.start_time,
             end_time=self.state_param_dto.end_time,
         )
+        # CLOSE/STOP state가 진행 중 thread를 정지시킬 수 있도록 owner에 등록.
+        self.owner.set_download_thread(self._thread)
         self._thread.start()
 
     def on_proc_every_frame(self):
@@ -73,6 +75,8 @@ class DownloadState(abState):
             self.__send_invalid_request(str(self._thread.get_error()))
         else:
             self.__send_ok()
+        # 정상 완료 또는 에러로 thread가 끝나면 owner 등록 해제.
+        self.owner.set_download_thread(None)
         self.__transition_to_wait()
 
     def __send_ok(self) -> None:
