@@ -8,13 +8,16 @@ from python_library.storage.storage import IStorage
 
 from common.process.queue_control_process import QueueControlProcess
 from config.project_config import ProjectConfig
+from protocol.message.process.close import InrCloseReq
 from protocol.message.process.play import InrPlayReq
 from protocol.message.process.playable_list import InrPlayableListReq
+from protocol.message.process.stop import InrStopReq
 
 from app.downloader.process.module.state import (
     E_DOWNLOADER_MODULE_STATE,
     build_state_map,
 )
+from app.downloader.process.module.state.helper.download_thread import DownloadThread
 
 
 class DownloaderModule(QueueControlProcess):
@@ -26,6 +29,8 @@ class DownloaderModule(QueueControlProcess):
         self._cache_storage: Optional[IStorage] = None
         self._cache_storage_root: str = ""
         self._cache_storage_prefix: str = ""
+        # 진행 중 DownloadThread 참조. CLOSE/STOP state에서 정지 신호 발신용.
+        self._download_thread: Optional[DownloadThread] = None
 
     def on_init(self):
         super().on_init()
@@ -71,6 +76,12 @@ class DownloaderModule(QueueControlProcess):
 
     def get_cache_storage_prefix(self) -> str:
         return self._cache_storage_prefix
+
+    def get_download_thread(self) -> Optional[DownloadThread]:
+        return self._download_thread
+
+    def set_download_thread(self, thread: Optional[DownloadThread]) -> None:
+        self._download_thread = thread
 
     def handle_playable_list_request(self, packet: InrPlayableListReq) -> None:
         from process_category.enum_category import E_CATE
@@ -118,8 +129,18 @@ class DownloaderModule(QueueControlProcess):
     def handle_seek_request(self, packet) -> None:
         raise NotImplementedError
 
-    def handle_close_request(self, packet) -> None:
-        raise NotImplementedError
+    def handle_close_request(self, packet: InrCloseReq) -> None:
+        # 어느 state에서든 진입 허용 (streamer pattern 동일).
+        if self._state_component is not None:
+            self._state_component.change_state(
+                E_DOWNLOADER_MODULE_STATE.CLOSE,
+                state_param_dto=packet,
+            )
 
-    def handle_stop_request(self, packet) -> None:
-        raise NotImplementedError
+    def handle_stop_request(self, packet: InrStopReq) -> None:
+        # 어느 state에서든 진입 허용 (streamer pattern 동일).
+        if self._state_component is not None:
+            self._state_component.change_state(
+                E_DOWNLOADER_MODULE_STATE.STOP,
+                state_param_dto=packet,
+            )

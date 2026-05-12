@@ -700,6 +700,7 @@ class ProtocolMeta:
                 },
                 inr_group_receive_handlers={
                     E_CATE.STREAMER: ProtocolHandler.inr_close_response_group,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_close_response_group,
                 },
             ),
         )
@@ -810,6 +811,7 @@ class ProtocolMeta:
                 },
                 inr_group_receive_handlers={
                     E_CATE.STREAMER: ProtocolHandler.inr_stop_response_group,
+                    E_CATE.DOWNLOADER: ProtocolHandler.inr_stop_response_group,
                 },
             ),
         )
