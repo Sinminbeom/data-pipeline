@@ -154,8 +154,21 @@ class MessageBridgeProcess(ImdgBusProcess):
         self.send_message_imdg(envelope)
 
     def handle_pause_request(self, packet: PauseReq) -> None:
-        # PAUSE_REQ는 STREAMER도 broadcast로 받으므로 BRIDGE는 forward 불필요 — no-op.
-        pass
+        """REST에서 받은 PAUSE_REQ를 STREAMER에 forward.
+
+        BRIDGE 자신이 send한 PAUSE_REQ도 receive_handlers로 dispatch되므로 sender로 필터.
+        """
+        from process_category.enum_category import E_CATE
+
+        if not ProtocolOwner.is_owner(packet.sender, E_CATE.REST_SERVER):
+            return
+
+        sender = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
+        receiver = ProtocolOwner.build(E_CATE.STREAMER, E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
+        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PAUSE_REQ)
+        fwd_packet = factory(sender, receiver)
+        envelope = ProtocolWrapper.get_protocol_wrapper(fwd_packet).get_protocol_packet_message()
+        self.send_message_imdg(envelope)
 
     def handle_pause_response(self, packet: PauseRep) -> None:
         """STREAMER → MESSAGE_BRIDGE로 들어온 PAUSE_REP를 PD_PAUSE_REP로 변환해 REST_SERVER로 IMDG 송신."""
@@ -178,8 +191,21 @@ class MessageBridgeProcess(ImdgBusProcess):
         self.send_message_imdg(envelope)
 
     def handle_seek_request(self, packet: SeekReq) -> None:
-        # SEEK_REQ는 STREAMER도 broadcast로 받으므로 BRIDGE는 forward 불필요 — no-op.
-        pass
+        """REST에서 받은 SEEK_REQ를 STREAMER에 forward.
+
+        BRIDGE 자신이 send한 SEEK_REQ도 receive_handlers로 dispatch되므로 sender로 필터.
+        """
+        from process_category.enum_category import E_CATE
+
+        if not ProtocolOwner.is_owner(packet.sender, E_CATE.REST_SERVER):
+            return
+
+        sender = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
+        receiver = ProtocolOwner.build(E_CATE.STREAMER, E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
+        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.SEEK_REQ)
+        fwd_packet = factory(sender, receiver, packet.start_time)
+        envelope = ProtocolWrapper.get_protocol_wrapper(fwd_packet).get_protocol_packet_message()
+        self.send_message_imdg(envelope)
 
     def handle_seek_response(self, packet: SeekRep) -> None:
         """STREAMER → MESSAGE_BRIDGE로 들어온 SEEK_REP를 PD_SEEK_REP로 변환해 REST_SERVER로 IMDG 송신."""
@@ -202,8 +228,21 @@ class MessageBridgeProcess(ImdgBusProcess):
         self.send_message_imdg(envelope)
 
     def handle_close_request(self, packet: CloseReq) -> None:
-        # CLOSE_REQ는 STREAMER도 broadcast로 받으므로 BRIDGE는 forward 불필요 — no-op.
-        pass
+        """REST에서 받은 CLOSE_REQ를 STREAMER에 forward.
+
+        BRIDGE 자신이 send한 CLOSE_REQ도 receive_handlers로 dispatch되므로 sender로 필터.
+        """
+        from process_category.enum_category import E_CATE
+
+        if not ProtocolOwner.is_owner(packet.sender, E_CATE.REST_SERVER):
+            return
+
+        sender = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
+        receiver = ProtocolOwner.build(E_CATE.STREAMER, E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
+        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.CLOSE_REQ)
+        fwd_packet = factory(sender, receiver)
+        envelope = ProtocolWrapper.get_protocol_wrapper(fwd_packet).get_protocol_packet_message()
+        self.send_message_imdg(envelope)
 
     def handle_close_response(self, packet: CloseRep) -> None:
         """STREAMER → MESSAGE_BRIDGE로 들어온 CLOSE_REP를 PD_CLOSE_REP로 변환해 REST_SERVER로 IMDG 송신."""
@@ -226,8 +265,21 @@ class MessageBridgeProcess(ImdgBusProcess):
         self.send_message_imdg(envelope)
 
     def handle_stop_request(self, packet: StopReq) -> None:
-        # STOP_REQ는 STREAMER도 broadcast로 받으므로 BRIDGE는 forward 불필요 — no-op.
-        pass
+        """REST에서 받은 STOP_REQ를 STREAMER에 forward.
+
+        BRIDGE 자신이 send한 STOP_REQ도 receive_handlers로 dispatch되므로 sender로 필터.
+        """
+        from process_category.enum_category import E_CATE
+
+        if not ProtocolOwner.is_owner(packet.sender, E_CATE.REST_SERVER):
+            return
+
+        sender = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
+        receiver = ProtocolOwner.build(E_CATE.STREAMER, E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
+        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.STOP_REQ)
+        fwd_packet = factory(sender, receiver)
+        envelope = ProtocolWrapper.get_protocol_wrapper(fwd_packet).get_protocol_packet_message()
+        self.send_message_imdg(envelope)
 
     def handle_stop_response(self, packet: StopRep) -> None:
         """STREAMER → MESSAGE_BRIDGE로 들어온 STOP_REP를 PD_STOP_REP로 변환해 REST_SERVER로 IMDG 송신."""
