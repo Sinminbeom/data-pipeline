@@ -68,7 +68,7 @@ class SocketIOProcess(ImdgBusProcess):
         from process_category.enum_category import E_CATE
 
         sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
-        receiver = ProtocolOwner.build(E_CATE.STREAMER, E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
+        receiver = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
 
         message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PLAY_REQ)(
             sender,
@@ -91,7 +91,7 @@ class SocketIOProcess(ImdgBusProcess):
         from process_category.enum_category import E_CATE
 
         sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
-        receiver = ProtocolOwner.build(E_CATE.STREAMER, E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
+        receiver = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
 
         message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PAUSE_REQ)(
             sender,
@@ -109,7 +109,7 @@ class SocketIOProcess(ImdgBusProcess):
         from process_category.enum_category import E_CATE
 
         sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
-        receiver = ProtocolOwner.build(E_CATE.STREAMER, E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
+        receiver = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
 
         message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.SEEK_REQ)(
             sender,
@@ -128,7 +128,7 @@ class SocketIOProcess(ImdgBusProcess):
         from process_category.enum_category import E_CATE
 
         sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
-        receiver = ProtocolOwner.build(E_CATE.STREAMER, E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
+        receiver = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
 
         message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.CLOSE_REQ)(
             sender,
@@ -146,7 +146,7 @@ class SocketIOProcess(ImdgBusProcess):
         from process_category.enum_category import E_CATE
 
         sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
-        receiver = ProtocolOwner.build(E_CATE.STREAMER, E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
+        receiver = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
 
         message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.STOP_REQ)(
             sender,
