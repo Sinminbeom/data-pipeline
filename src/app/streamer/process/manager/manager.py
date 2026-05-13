@@ -21,6 +21,14 @@ class StreamerManager(ImdgBusProcess):
     def __init__(self, app_name, process_name):
         super().__init__(app_name, process_name)
         self.enable_inr_matcher()
+        # PLAY 시점에 저장 — PAUSE/SEEK/CLOSE/STOP broadcast 시 동일 sensor 집합 사용.
+        self._active_sensors: list[str] = []
+
+    def set_active_sensors(self, sensors: list[str]) -> None:
+        self._active_sensors = sensors
+
+    def get_active_sensors(self) -> list[str]:
+        return self._active_sensors
 
     def on_init(self):
         super().on_init()

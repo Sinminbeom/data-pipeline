@@ -23,12 +23,9 @@ class SeekState(abState):
 
         assert isinstance(self.state_param_dto, SeekReq)
 
-        # 활성 sensor module list 추적은 후속 작업 — placeholder는 빈 리스트.
-        receivers: list[str] = []
-
         self.owner.broadcast_message_req_inner_queue(
             E_PROTOCOL_ID.INR_SEEK_REQ,
-            receivers,
+            self.owner.get_active_sensors(),
             self.state_param_dto.start_time,
             rep_protocol_id=E_PROTOCOL_ID.INR_SEEK_REP,
         )

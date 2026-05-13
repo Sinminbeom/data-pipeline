@@ -23,6 +23,9 @@ class PlayState(abState):
 
         assert isinstance(self.state_param_dto, PlayReq)
 
+        # 후속 lifecycle(PAUSE/SEEK/CLOSE/STOP) broadcast 시 동일 sensor 집합 사용.
+        self.owner.set_active_sensors(self.state_param_dto.sensor_id_list)
+
         self.owner.broadcast_message_req_inner_queue(
             E_PROTOCOL_ID.INR_PLAY_REQ,
             self.state_param_dto.sensor_id_list,
