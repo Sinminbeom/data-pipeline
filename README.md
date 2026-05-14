@@ -1,4 +1,4 @@
-# data-pipeline
+# sensor-data-replayer
 
 자율주행 차량의 멀티 센서 데이터(LiDAR, GNSS, Camera)를 수집·처리하는 분산 파이프라인 시스템.
 
@@ -61,7 +61,7 @@ flowchart TB
 
 | 분류 | 기술 |
 |------|------|
-| 언어 | Python 3.11 |
+| 언어 | Python 3.14 |
 | 패키지 관리 | uv |
 | REST / WebSocket | FastAPI + python-socketio + uvicorn |
 | IPC 브로커 | Redis 7 (pub/sub) |
@@ -75,7 +75,7 @@ flowchart TB
 ## 디렉터리 구조
 
 ```
-data-pipeline/
+sensor-data-replayer/
 ├── conf/
 │   ├── application.conf           # 서비스 설정 (Redis, REST, Storage 등)
 │   └── logging.conf               # 로깅 설정
@@ -111,7 +111,7 @@ data-pipeline/
 
 ## 사전 요구사항
 
-- Python 3.11+
+- Python 3.14+
 - [uv](https://docs.astral.sh/uv/) 설치
 - Redis 서버 실행 중 (기본: `localhost:6379`)
 
@@ -119,8 +119,8 @@ data-pipeline/
 
 ```bash
 # 저장소 클론
-git clone git@github.com:Sinminbeom/data-pipeline.git
-cd data-pipeline
+git clone git@github.com:Sinminbeom/sensor-data-replayer.git
+cd sensor-data-replayer
 
 # 의존성 설치
 uv sync --dev
@@ -132,15 +132,15 @@ uv sync --dev
 
 ```ini
 [COMMON]
-PROJECT_NAME = data-pipeline
+PROJECT_NAME = sensor-data-replayer
 CHANNEL_NAME = test           ; Redis pub/sub 채널명
 
 [STORAGE]
-ROOT = /home/.../data-pipeline/data   ; LocalStorage 루트 (원본 소스 — 운영 시 S3/MinIO 대체 예정)
+ROOT = /home/.../sensor-data-replayer/data   ; LocalStorage 루트 (원본 소스 — 운영 시 S3/MinIO 대체 예정)
 PREFIX = raw
 
 [STORAGE_CACHE]
-ROOT = /home/.../data-pipeline/data   ; Downloader가 받은 데이터를 저장하는 로컬 캐시
+ROOT = /home/.../sensor-data-replayer/data   ; Downloader가 받은 데이터를 저장하는 로컬 캐시
 PREFIX = cache                ; Streamer는 후속 phase에서 이 경로를 읽음
 
 [IMDG]
