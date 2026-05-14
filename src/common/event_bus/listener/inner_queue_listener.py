@@ -26,8 +26,8 @@ class InnerQueueListener(abListener[QueueControlProcess]):
         wrapper, packet = ProtocolWrapper.decode_protocol_wrapper_with_message_protocol(envelope)
 
         log = AppLogger.instance()
-        log.info(f"[IQ RECV] {wrapper.summary(packet)}")
-        log.debug(f"[IQ RECV payload] {envelope}")
+        log.info(f"[INNER_QUEUE RECV] {wrapper.summary(packet)}")
+        log.debug(f"[INNER_QUEUE RECV payload] {envelope}")
 
         # 1. 개별 핸들러 (응답마다 1회)
         ProtocolMeta.get_receive_handler(wrapper.protocol_id, receiver)(

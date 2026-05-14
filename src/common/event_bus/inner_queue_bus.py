@@ -21,8 +21,8 @@ class InnerQueueBus(abEventBus[QueueControlProcess]):
         wrapper = ProtocolWrapper.get_protocol_wrapper(packet)
         envelope = wrapper.get_protocol_packet_message()
         log = AppLogger.instance()
-        log.info(f"[IQ SEND] {wrapper.summary(packet)}")
-        log.debug(f"[IQ SEND payload] {envelope}")
+        log.info(f"[INNER_QUEUE SEND] {wrapper.summary(packet)}")
+        log.debug(f"[INNER_QUEUE SEND payload] {envelope}")
         self.send_message_inner_queue(receiver_process_name, envelope)
 
     def send_message_req_inner_queue(
