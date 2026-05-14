@@ -5,7 +5,7 @@ from python_library.define.enum import IENUM
 class ProjectConfig(AppConfig):
     DEFAULT_CONFIG_PATH = "./conf/application.conf"
     DEFAULT_LOGGING_CONFIG_PATH = "./conf/logging.conf"
-    LOGGER_BASE_NAME = "data-pipeline"
+    LOGGER_BASE_NAME = "sensor-data-replayer"
 
     class E_CATE_TYPE(IENUM):
         COMMON = "COOMON"
