@@ -75,7 +75,7 @@ class DownloadThread(abThread):
                 self._cache_root, self._cache_prefix, cursor
             )
 
-            for storage_file in self._source_storage.get_file_list(src_minute_path):
+            for storage_file in self.__list_minute(src_minute_path):
                 if self.is_stop():
                     return
                 if storage_file.is_dir():
@@ -89,7 +89,7 @@ class DownloadThread(abThread):
                     continue
 
                 src_path = f"{src_minute_path}{file_name}"
-                cache_path = f"{cache_minute_path}{file_name}"
+                cache_path = f"{cache_minute_path}{self._sensor_id}_{ts}.pcap"
 
                 data = self._source_storage.read(src_path)
                 self._cache_storage.write(cache_path, data)
@@ -98,10 +98,17 @@ class DownloadThread(abThread):
             cursor += timedelta(minutes=1)
 
     def __build_base_path(self, root: str, prefix: str) -> str:
-        parts = [prefix, self._vehicle_id, self._category, self._sensor_id.lower()]
+        parts = [prefix, self._vehicle_id, self._category, self._sensor_id]
         suffix = "/".join(p for p in parts if p)
         return f"{root}/{suffix}"
 
     def __build_minute_path(self, root: str, prefix: str, when: datetime) -> str:
         base = self.__build_base_path(root, prefix)
         return f"{base}/{when.strftime('%Y%m%d')}/{when.strftime('%H')}/{when.strftime('%M')}/"
+
+    def __list_minute(self, minute_path: str) -> list:
+        # S3StorageClient (python-library v2.11.1) 가 빈 prefix 에서 KeyError('Contents').
+        try:
+            return self._source_storage.get_file_list(minute_path)
+        except KeyError:
+            return []
