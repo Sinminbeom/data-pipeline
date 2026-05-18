@@ -4,6 +4,8 @@ from typing import Optional
 
 from python_library.storage.local.local_storage_factory import LocalStorageFactory
 from python_library.storage.local.local_storage_info_factory import LocalStorageInfoFactory
+from python_library.storage.s3.s3_storage_factory import S3StorageFactory
+from python_library.storage.s3.s3_storage_info_factory import S3StorageInfoFactory
 from python_library.storage.storage import IStorage
 
 from common.process.queue_control_process import QueueControlProcess
@@ -37,7 +39,7 @@ class DownloaderModule(QueueControlProcess):
         config = ProjectConfig.instance()
         self._storage_root = (config.storage_root or "").rstrip("/")
         self._storage_prefix = (config.storage_prefix or "").strip("/")
-        self._storage = LocalStorageFactory(LocalStorageInfoFactory()).create_storage()
+        self._storage = S3StorageFactory(S3StorageInfoFactory()).create_storage()
         self._storage.connect()
 
         self._cache_storage_root = (config.cache_storage_root or "").rstrip("/")

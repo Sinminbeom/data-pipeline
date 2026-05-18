@@ -51,7 +51,7 @@ class LookupThread(abThread):
         return self._error
 
     def __build_base_path(self) -> str:
-        parts = [self._storage_prefix, self._vehicle_id, self._category, self._sensor_id.lower()]
+        parts = [self._storage_prefix, self._vehicle_id, self._category, self._sensor_id]
         suffix = "/".join(p for p in parts if p)
         return f"{self._storage_root}/{suffix}"
 
@@ -62,7 +62,7 @@ class LookupThread(abThread):
 
         while cursor <= end_minute:
             minute_path = self.__build_minute_path(base_path, cursor)
-            for storage_file in self._storage.get_file_list(minute_path):
+            for storage_file in self.__list_minute(minute_path):
                 if storage_file.is_dir():
                     continue
                 ts = storage_file.get_file_name().split(".")[0][-14:]
@@ -72,6 +72,14 @@ class LookupThread(abThread):
                     results.add(ts)
             cursor += timedelta(minutes=1)
         return results
+
+    def __list_minute(self, minute_path: str) -> list:
+        # S3StorageClient (python-library v2.11.1) 가 빈 prefix 에서 KeyError('Contents') 를
+        # raise — 빈 분 단위 디렉토리를 만나면 KeyError 로 끊기지 않게 방어.
+        try:
+            return self._storage.get_file_list(minute_path)
+        except KeyError:
+            return []
 
     @staticmethod
     def __build_minute_path(base_path: str, when: datetime) -> str:

@@ -124,18 +124,18 @@ class PcapReaderThread(abThread):
         return os.path.isfile(file_path)
 
     def _build_pcap_path(self, category: str, when: datetime) -> str:
-        sensor_lower = self._sensor_id.lower()
+        sensor = self._sensor_id
         timestamp = when.strftime(_TIMESTAMP_FORMAT)
         parts = [
             self._storage_root,
             self._storage_prefix,
             self._vehicle_id,
             category,
-            sensor_lower,
+            sensor,
             when.strftime(_DATE_FORMAT),
             when.strftime(_HOUR_FORMAT),
             when.strftime(_MINUTE_FORMAT),
-            f"{sensor_lower}_{timestamp}.pcap",
+            f"{sensor}_{timestamp}.pcap",
         ]
         joined = "/".join(p for p in parts if p)
         return os.path.normpath(joined)
