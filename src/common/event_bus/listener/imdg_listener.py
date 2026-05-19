@@ -33,7 +33,7 @@ class ImdgListener(abListener[ImdgBusProcess]):
                 log.info(f"[IMDG RECV] {wrapper.summary(packet)}")
                 log.debug(f"[IMDG RECV payload] {envelope}")
 
-                ProtocolMeta.get_receive_handler(wrapper.protocol_id, receiver)(
+                ProtocolMeta.instance().get_receive_handler(wrapper.protocol_id, receiver)(
                     self._parent_process, wrapper, packet
                 )
 

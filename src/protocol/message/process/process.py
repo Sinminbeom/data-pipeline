@@ -2,13 +2,14 @@ from dataclasses import dataclass
 
 from define.define import E_COMMUNICATION_TYPE
 from protocol.message.message import (
-    abProtocolMessage,
+    abMessage,
     E_PROTOCOL_MESSAGE_DIRECTION,
+    ResponseInfo,
 )
 
 
 @dataclass
-class abProcessMessage(abProtocolMessage):
+class abProcessMessage(abMessage):
     """앱 내 자식 프로세스 간 통신. communication_type=PROCESS."""
     communication_type: E_COMMUNICATION_TYPE = E_COMMUNICATION_TYPE.PROCESS
 
@@ -21,8 +22,9 @@ class abProcessRequestMessage(abProcessMessage):
 
 @dataclass
 class abProcessResponseMessage(abProcessMessage):
-    """PROCESS RESPONSE. message_direction=RESPONSE."""
+    """PROCESS RESPONSE. message_direction=RESPONSE. response 보유."""
     message_direction: E_PROTOCOL_MESSAGE_DIRECTION = E_PROTOCOL_MESSAGE_DIRECTION.RESPONSE
+    response: ResponseInfo | None = None
 
 
 @dataclass

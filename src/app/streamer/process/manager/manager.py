@@ -4,11 +4,11 @@ from typing import Optional
 
 from common.process.imdg_bus_process import ImdgBusProcess
 from protocol.inr_protocol_matcher.inr_pair_state import E_PROTOCOL_PAIR_STATE
-from protocol.message.imdg.close import CloseReq
-from protocol.message.imdg.pause import PauseReq
-from protocol.message.imdg.play import PlayReq
-from protocol.message.imdg.seek import SeekReq
-from protocol.message.imdg.stop import StopReq
+from protocol.message.imdg.replay.close import CloseReq
+from protocol.message.imdg.replay.pause import PauseReq
+from protocol.message.imdg.replay.play import PlayReq
+from protocol.message.imdg.replay.seek import SeekReq
+from protocol.message.imdg.replay.stop import StopReq
 from protocol.message.message import IMessage
 
 from app.streamer.process.manager.state import (

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from python_library.state import abState
 
-from protocol.message.process.close import InrCloseReq
+from protocol.message.process.replay.close import InrCloseReq
 
 if TYPE_CHECKING:
     from app.downloader.process.module.module import DownloaderModule

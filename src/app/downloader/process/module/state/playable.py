@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Optional
 
 from python_library.state import abState
 
-from protocol.message.process.playable_list import InrPlayableListReq
+from protocol.message.process.replay.playable_list import InrPlayableListReq
 from protocol.section_element import SectionElement
 
 from app.downloader.process.module.state.helper.lookup_thread import LookupThread

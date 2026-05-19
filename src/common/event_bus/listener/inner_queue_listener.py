@@ -30,7 +30,7 @@ class InnerQueueListener(abListener[QueueControlProcess]):
         log.debug(f"[INNER_QUEUE RECV payload] {envelope}")
 
         # 1. 개별 핸들러 (응답마다 1회)
-        ProtocolMeta.get_receive_handler(wrapper.protocol_id, receiver)(
+        ProtocolMeta.instance().get_receive_handler(wrapper.protocol_id, receiver)(
             self._parent_process, wrapper, packet
         )
 

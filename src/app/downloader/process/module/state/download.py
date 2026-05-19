@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Optional
 
 from python_library.state import abState
 
-from protocol.message.process.play import InrPlayReq
+from protocol.message.process.replay.play import InrPlayReq
 
 from app.downloader.process.module.state.helper.download_thread import DownloadThread
 

@@ -90,7 +90,9 @@ class QueueControlProcess(StepProcess):
         if self._inr_matcher is None:
             return
 
-        from protocol.message.message import E_PROTOCOL_MESSAGE_DIRECTION
+        from protocol.message.message import E_PROTOCOL_MESSAGE_DIRECTION, abMessage
+        if not isinstance(packet, abMessage):
+            return
         if packet.message_direction != E_PROTOCOL_MESSAGE_DIRECTION.RESPONSE:
             return
 
@@ -100,7 +102,7 @@ class QueueControlProcess(StepProcess):
 
         state = self._inr_matcher.append_response(group_id, packet)
         if state in (E_PROTOCOL_PAIR_STATE.COMPLEATE, E_PROTOCOL_PAIR_STATE.ERROR):
-            handler = ProtocolMeta.get_inr_group_receive_handler(
+            handler = ProtocolMeta.instance().get_inr_group_receive_handler(
                 wrapper.protocol_id, self.get_app_name()
             )
             if handler is not None:

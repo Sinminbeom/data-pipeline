@@ -18,8 +18,10 @@ class InrProtocolContainer:
 
     def append(self, packet: IMessage) -> None:
         self._responses.append(packet)
-        # response.code가 OK가 아니면 에러로 간주
-        if packet.response is not None and packet.response.code not in ("", "OK"):
+        # response는 abImdgResponseMessage / abProcessResponseMessage에만 있음.
+        # 컨테이너 시그니처는 IMessage 유지 — runtime attribute lookup으로 정상 케이스 처리.
+        response = getattr(packet, "response", None)
+        if response is not None and response.code not in ("", "OK"):
             self._has_error = True
 
     def get_state(self) -> E_PROTOCOL_PAIR_STATE:

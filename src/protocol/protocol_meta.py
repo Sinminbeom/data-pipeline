@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, Mapping, ClassVar
+from typing import Any, Callable, Dict, Mapping
 
 from python_library.process.process import IProcess
+from python_library.singleton.singleton import Singleton
 
 from protocol.inr_protocol_matcher.inr_pair_state import E_PROTOCOL_PAIR_STATE
 from protocol.message.message import IMessage
@@ -69,65 +70,51 @@ class ProtocolEntry:
     inr_group_receive_handlers: Mapping[ReceiverKey, GroupHandlerFn] = field(default_factory=dict)
 
 
-class ProtocolMeta:
-    """
-    Static-style registry.
+class ProtocolMeta(Singleton):
+    """Protocol registry singleton.
 
     Usage:
-      ProtocolMeta.initialize()  # once (or auto-called at module import)
-      handler = ProtocolMeta.get_receive_handler(E_PROTOCOL_ID.PLAYABLE_LIST_REQ, E_CATE.DOWNLOADER)
+      ProtocolMeta.instance().get_receive_handler(E_PROTOCOL_ID.PLAYABLE_LIST_REQ, E_CATE.DOWNLOADER)
     """
 
-    table: ClassVar[Dict[E_PROTOCOL_ID, ProtocolEntry]] = {}
-    _initialized: ClassVar[bool] = False
-
-    # ---------------------------
-    # Initialization
-    # ---------------------------
-    @classmethod
-    def initialize(cls) -> None:
-        """Idempotent init. Safe to call multiple times."""
-        if cls._initialized:
-            return
-        cls._register_protocols()
-        cls._initialized = True
+    def __init__(self) -> None:
+        self.table: Dict[E_PROTOCOL_ID, ProtocolEntry] = {}
+        self._register_protocols()
 
     # ---------------------------
     # Register (private)
     # ---------------------------
-    @classmethod
-    def _register(cls, protocol_id: E_PROTOCOL_ID, entry: ProtocolEntry) -> None:
-        if protocol_id in cls.table:
+    def _register(self, protocol_id: E_PROTOCOL_ID, entry: ProtocolEntry) -> None:
+        if protocol_id in self.table:
             raise KeyError(f"Protocol already registered: {protocol_id}")
-        cls.table[protocol_id] = entry
+        self.table[protocol_id] = entry
 
-    @classmethod
-    def _register_protocols(cls) -> None:
+    def _register_protocols(self) -> None:
         from process_category.enum_category import E_CATE
-        from protocol.message.external.ui.close import PDCloseReq, PDCloseRep
-        from protocol.message.external.ui.pause import PDPauseReq, PDPauseRep
-        from protocol.message.external.ui.play import PDPlayReq, PDPlayRep
-        from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
-        from protocol.message.external.ui.seek import PDSeekReq, PDSeekRep
-        from protocol.message.external.ui.stop import PDStopReq, PDStopRep
-        from protocol.message.imdg.close import CloseReq, CloseRep
-        from protocol.message.imdg.pause import PauseReq, PauseRep
-        from protocol.message.imdg.play import PlayReq, PlayRep
-        from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
-        from protocol.message.imdg.seek import SeekReq, SeekRep
-        from protocol.message.imdg.stop import StopReq, StopRep
-        from protocol.message.process.close import InrCloseReq, InrCloseRep
-        from protocol.message.process.pause import InrPauseReq, InrPauseRep
-        from protocol.message.process.play import InrPlayReq, InrPlayRep
-        from protocol.message.process.playable_list import InrPlayableListReq, InrPlayableListRep
-        from protocol.message.process.seek import InrSeekReq, InrSeekRep
-        from protocol.message.process.stop import InrStopReq, InrStopRep
+        from protocol.message.external.replay.close import PDCloseReq, PDCloseRep
+        from protocol.message.external.replay.pause import PDPauseReq, PDPauseRep
+        from protocol.message.external.replay.play import PDPlayReq, PDPlayRep
+        from protocol.message.external.replay.playable_list import PDPlayableListReq, PDPlayableListRep
+        from protocol.message.external.replay.seek import PDSeekReq, PDSeekRep
+        from protocol.message.external.replay.stop import PDStopReq, PDStopRep
+        from protocol.message.imdg.replay.close import CloseReq, CloseRep
+        from protocol.message.imdg.replay.pause import PauseReq, PauseRep
+        from protocol.message.imdg.replay.play import PlayReq, PlayRep
+        from protocol.message.imdg.replay.playable_list import PlayableListReq, PlayableListRep
+        from protocol.message.imdg.replay.seek import SeekReq, SeekRep
+        from protocol.message.imdg.replay.stop import StopReq, StopRep
+        from protocol.message.process.replay.close import InrCloseReq, InrCloseRep
+        from protocol.message.process.replay.pause import InrPauseReq, InrPauseRep
+        from protocol.message.process.replay.play import InrPlayReq, InrPlayRep
+        from protocol.message.process.replay.playable_list import InrPlayableListReq, InrPlayableListRep
+        from protocol.message.process.replay.seek import InrSeekReq, InrSeekRep
+        from protocol.message.process.replay.stop import InrStopReq, InrStopRep
         from protocol.protocol_handler import ProtocolHandler
 
         # ===== PlayableList 3계층 =====
 
         # PD_PLAYABLE_LIST_REQ → REST_SERVER
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PD_PLAYABLE_LIST_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver, vehicle_id, sensor_id_list, start_time, end_time: PDPlayableListReq(
@@ -147,7 +134,7 @@ class ProtocolMeta:
         )
 
         # PD_PLAYABLE_LIST_REP → REST_SERVER (socket.io broadcast)
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PD_PLAYABLE_LIST_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, sensor_id_list, section_list, code, code_nm, reason: PDPlayableListRep(
@@ -168,7 +155,7 @@ class ProtocolMeta:
         )
 
         # PLAYABLE_LIST_REQ → MESSAGE_BRIDGE / DOWNLOADER
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PLAYABLE_LIST_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver, vehicle_id, sensor_id_list, start_time, end_time: PlayableListReq(
@@ -189,7 +176,7 @@ class ProtocolMeta:
         )
 
         # PLAYABLE_LIST_REP → MESSAGE_BRIDGE
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PLAYABLE_LIST_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, sensor_id_list, section_list, response: PlayableListRep(
@@ -208,7 +195,7 @@ class ProtocolMeta:
         )
 
         # INR_PLAYABLE_LIST_REQ → DOWNLOADER (Module)
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.INR_PLAYABLE_LIST_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver, vehicle_id, start_time, end_time: InrPlayableListReq(
@@ -227,7 +214,7 @@ class ProtocolMeta:
         )
 
         # INR_PLAYABLE_LIST_REP → DOWNLOADER (Manager) + group
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.INR_PLAYABLE_LIST_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, sensor_id, section_list, response: InrPlayableListRep(
@@ -251,7 +238,7 @@ class ProtocolMeta:
         # ===== Play 3계층 =====
 
         # PD_PLAY_REQ → REST_SERVER
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PD_PLAY_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver, section_id, vehicle_id, sensor_id_list, start_time, end_time: PDPlayReq(
@@ -272,7 +259,7 @@ class ProtocolMeta:
         )
 
         # PD_PLAY_REP → REST_SERVER (socket.io broadcast)
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PD_PLAY_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, code, code_nm, reason: PDPlayRep(
@@ -291,7 +278,7 @@ class ProtocolMeta:
         )
 
         # PLAY_REQ → BRIDGE / STREAMER / DOWNLOADER (broadcast dispatch — BRIDGE 외엔 sender filter로 차단)
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PLAY_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver, section_id, vehicle_id, sensor_id_list, start_time, end_time: PlayReq(
@@ -314,7 +301,7 @@ class ProtocolMeta:
         )
 
         # PLAY_REP → MESSAGE_BRIDGE
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PLAY_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, response=None: PlayRep(
@@ -331,7 +318,7 @@ class ProtocolMeta:
         )
 
         # INR_PLAY_REQ → STREAMER (Module) / DOWNLOADER (Module)
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.INR_PLAY_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver, section_id, vehicle_id, start_time, end_time: InrPlayReq(
@@ -352,7 +339,7 @@ class ProtocolMeta:
         )
 
         # INR_PLAY_REP → STREAMER (Manager) / DOWNLOADER (Manager) + group
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.INR_PLAY_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, response=None: InrPlayRep(
@@ -376,7 +363,7 @@ class ProtocolMeta:
         # ===== Pause 3계층 =====
 
         # PD_PAUSE_REQ → REST_SERVER
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PD_PAUSE_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver: PDPauseReq(
@@ -392,7 +379,7 @@ class ProtocolMeta:
         )
 
         # PD_PAUSE_REP → REST_SERVER (socket.io broadcast)
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PD_PAUSE_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, code, code_nm, reason: PDPauseRep(
@@ -411,7 +398,7 @@ class ProtocolMeta:
         )
 
         # PAUSE_REQ → BRIDGE / STREAMER (DOWNLOADER 무관 — 재생 흐름 전용)
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PAUSE_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver: PauseReq(
@@ -428,7 +415,7 @@ class ProtocolMeta:
         )
 
         # PAUSE_REP → MESSAGE_BRIDGE
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PAUSE_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, response=None: PauseRep(
@@ -445,7 +432,7 @@ class ProtocolMeta:
         )
 
         # INR_PAUSE_REQ → STREAMER (Module) — DOWNLOADER 무관 (재생 흐름 전용)
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.INR_PAUSE_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver: InrPauseReq(
@@ -461,7 +448,7 @@ class ProtocolMeta:
         )
 
         # INR_PAUSE_REP → STREAMER (Manager) / DOWNLOADER (Manager) + group
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.INR_PAUSE_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, response=None: InrPauseRep(
@@ -483,7 +470,7 @@ class ProtocolMeta:
         # ===== Seek 3계층 =====
 
         # PD_SEEK_REQ → REST_SERVER
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PD_SEEK_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver, start_time: PDSeekReq(
@@ -500,7 +487,7 @@ class ProtocolMeta:
         )
 
         # PD_SEEK_REP → REST_SERVER (socket.io broadcast)
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PD_SEEK_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, code, code_nm, reason: PDSeekRep(
@@ -519,7 +506,7 @@ class ProtocolMeta:
         )
 
         # SEEK_REQ → BRIDGE / STREAMER (DOWNLOADER 무관 — 재생 흐름 전용)
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.SEEK_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver, start_time: SeekReq(
@@ -537,7 +524,7 @@ class ProtocolMeta:
         )
 
         # SEEK_REP → MESSAGE_BRIDGE
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.SEEK_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, response=None: SeekRep(
@@ -554,7 +541,7 @@ class ProtocolMeta:
         )
 
         # INR_SEEK_REQ → STREAMER (Module) — DOWNLOADER 무관 (재생 흐름 전용)
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.INR_SEEK_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver, start_time: InrSeekReq(
@@ -571,7 +558,7 @@ class ProtocolMeta:
         )
 
         # INR_SEEK_REP → STREAMER (Manager) / DOWNLOADER (Manager) + group
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.INR_SEEK_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, response=None: InrSeekRep(
@@ -593,7 +580,7 @@ class ProtocolMeta:
         # ===== Close 3계층 =====
 
         # PD_CLOSE_REQ → REST_SERVER
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PD_CLOSE_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver: PDCloseReq(
@@ -609,7 +596,7 @@ class ProtocolMeta:
         )
 
         # PD_CLOSE_REP → REST_SERVER (socket.io broadcast)
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PD_CLOSE_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, code, code_nm, reason: PDCloseRep(
@@ -628,7 +615,7 @@ class ProtocolMeta:
         )
 
         # CLOSE_REQ → BRIDGE / STREAMER / DOWNLOADER
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.CLOSE_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver: CloseReq(
@@ -646,7 +633,7 @@ class ProtocolMeta:
         )
 
         # CLOSE_REP → MESSAGE_BRIDGE
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.CLOSE_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, response=None: CloseRep(
@@ -663,7 +650,7 @@ class ProtocolMeta:
         )
 
         # INR_CLOSE_REQ → STREAMER (Module) / DOWNLOADER (Module)
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.INR_CLOSE_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver: InrCloseReq(
@@ -680,7 +667,7 @@ class ProtocolMeta:
         )
 
         # INR_CLOSE_REP → STREAMER (Manager) / DOWNLOADER (Manager) + group
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.INR_CLOSE_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, response=None: InrCloseRep(
@@ -704,7 +691,7 @@ class ProtocolMeta:
         # ===== Stop 3계층 =====
 
         # PD_STOP_REQ → REST_SERVER
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PD_STOP_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver: PDStopReq(
@@ -720,7 +707,7 @@ class ProtocolMeta:
         )
 
         # PD_STOP_REP → REST_SERVER (socket.io broadcast)
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.PD_STOP_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, code, code_nm, reason: PDStopRep(
@@ -739,7 +726,7 @@ class ProtocolMeta:
         )
 
         # STOP_REQ → BRIDGE / STREAMER / DOWNLOADER
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.STOP_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver: StopReq(
@@ -757,7 +744,7 @@ class ProtocolMeta:
         )
 
         # STOP_REP → MESSAGE_BRIDGE
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.STOP_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, response=None: StopRep(
@@ -774,7 +761,7 @@ class ProtocolMeta:
         )
 
         # INR_STOP_REQ → STREAMER (Module) / DOWNLOADER (Module)
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.INR_STOP_REQ,
             ProtocolEntry(
                 factory=lambda sender, receiver: InrStopReq(
@@ -791,7 +778,7 @@ class ProtocolMeta:
         )
 
         # INR_STOP_REP → STREAMER (Manager) / DOWNLOADER (Manager) + group
-        cls._register(
+        self._register(
             E_PROTOCOL_ID.INR_STOP_REP,
             ProtocolEntry(
                 factory=lambda sender, receiver, response=None: InrStopRep(
@@ -815,8 +802,8 @@ class ProtocolMeta:
     # ---------------------------
     # Conversion helper
     # ---------------------------
-    @classmethod
-    def _to_enum(cls, protocol_id: E_PROTOCOL_ID | str) -> E_PROTOCOL_ID:
+    @staticmethod
+    def _to_enum(protocol_id: E_PROTOCOL_ID | str) -> E_PROTOCOL_ID:
         if isinstance(protocol_id, E_PROTOCOL_ID):
             return protocol_id
         try:
@@ -828,31 +815,23 @@ class ProtocolMeta:
     # ---------------------------
     # Public API
     # ---------------------------
-    @classmethod
-    def get_receive_handler(cls, protocol_id: E_PROTOCOL_ID | str, receiver: ReceiverKey) -> HandlerFn:
-        cls.initialize()
-        pid = cls._to_enum(protocol_id)
+    def get_receive_handler(self, protocol_id: E_PROTOCOL_ID | str, receiver: ReceiverKey) -> HandlerFn:
+        pid = self._to_enum(protocol_id)
         from protocol.protocol_owner import ProtocolOwner
         app_name = ProtocolOwner.get_app_name(receiver) if isinstance(receiver, str) else receiver
-        return cls.table[pid].receive_handlers[app_name]
+        return self.table[pid].receive_handlers[app_name]
 
-    @classmethod
     def get_inr_group_receive_handler(
-        cls, protocol_id: E_PROTOCOL_ID | str, receiver: ReceiverKey
+        self, protocol_id: E_PROTOCOL_ID | str, receiver: ReceiverKey
     ) -> GroupHandlerFn | None:
         """매칭되는 group handler가 없으면 None 반환 (기본은 dead — 폴링이 처리)."""
-        cls.initialize()
-        pid = cls._to_enum(protocol_id)
-        return cls.table[pid].inr_group_receive_handlers.get(receiver)
+        pid = self._to_enum(protocol_id)
+        return self.table[pid].inr_group_receive_handlers.get(receiver)
 
-    @classmethod
-    def get_protocol_factory(cls, protocol_id: E_PROTOCOL_ID | str) -> FactoryFn:
-        cls.initialize()
-        pid = cls._to_enum(protocol_id)
-        return cls.table[pid].factory
+    def get_protocol_factory(self, protocol_id: E_PROTOCOL_ID | str) -> FactoryFn:
+        pid = self._to_enum(protocol_id)
+        return self.table[pid].factory
 
-    @classmethod
-    def get_json_decoder(cls, protocol_id: E_PROTOCOL_ID | str) -> DecoderFn:
-        cls.initialize()
-        pid = cls._to_enum(protocol_id)
-        return cls.table[pid].decoder
+    def get_json_decoder(self, protocol_id: E_PROTOCOL_ID | str) -> DecoderFn:
+        pid = self._to_enum(protocol_id)
+        return self.table[pid].decoder

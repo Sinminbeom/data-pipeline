@@ -1,7 +1,7 @@
 from enum import IntEnum
 
 from define.define import E_COMMUNICATION_TYPE
-from protocol.message.message import E_PROTOCOL_MESSAGE_DIRECTION, IMessage
+from protocol.message.message import E_PROTOCOL_MESSAGE_DIRECTION, IMessage, abMessage
 from utils.string_builder import StringBuilder
 from utils.time_string_fit import TimeStringFit, E_TIMEFORMAT
 
@@ -21,11 +21,12 @@ class ProtocolWrapper:
     sequence_id = dict()
 
     def __init__(self, message_id: str, protocol_message: IMessage):
-        # 모든 message는 root level에 protocol_id/sender/receiver/message_direction 보유.
-        # communication_type은 abProtocolMessage 계열에만 있음 (pdPacket엔 없음 → NORMAL fallback).
-        self.communication_type = getattr(
-            protocol_message, "communication_type", E_COMMUNICATION_TYPE.NORMAL
+        # IMessage는 직렬화 contract만 보장 — 라우팅 필드는 abMessage 계열에만 있음.
+        # wrapper는 라우팅 필드를 root level로 평탄화하므로 narrowing이 필요하다.
+        assert isinstance(protocol_message, abMessage), (
+            f"ProtocolWrapper는 abMessage 계열만 받는다. got={type(protocol_message).__name__}"
         )
+        self.communication_type = protocol_message.communication_type
         self.protocol_id = protocol_message.protocol_id
         self.message_direction = protocol_message.message_direction
         self.sender = protocol_message.sender
@@ -102,6 +103,6 @@ class ProtocolWrapper:
         protocol_id = splits[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.PROTOCOL_ID]
         protocol_message_json = splits[ProtocolWrapper.E_PROTOCOL_MESSAGE_ELE.PROTOCOL_MESSAGE]
 
-        message = ProtocolMeta.get_json_decoder(protocol_id)(protocol_message_json)
+        message = ProtocolMeta.instance().get_json_decoder(protocol_id)(protocol_message_json)
         wrapper = ProtocolWrapper(message_id, message)
         return wrapper, message
