@@ -3,12 +3,12 @@ from __future__ import annotations
 from typing import Optional
 
 from common.process.imdg_bus_process import ImdgBusProcess
-from protocol.message.imdg.close import CloseReq, CloseRep
-from protocol.message.imdg.pause import PauseReq, PauseRep
-from protocol.message.imdg.play import PlayReq, PlayRep
-from protocol.message.imdg.seek import SeekReq, SeekRep
-from protocol.message.imdg.stop import StopReq, StopRep
-from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
+from protocol.message.imdg.replay.close import CloseReq, CloseRep
+from protocol.message.imdg.replay.pause import PauseReq, PauseRep
+from protocol.message.imdg.replay.play import PlayReq, PlayRep
+from protocol.message.imdg.replay.seek import SeekReq, SeekRep
+from protocol.message.imdg.replay.stop import StopReq, StopRep
+from protocol.message.imdg.replay.playable_list import PlayableListReq, PlayableListRep
 from protocol.message.message import ResponseInfo
 from protocol.protocol_meta import E_PROTOCOL_ID, ProtocolMeta
 from protocol.protocol_owner import ProtocolOwner
@@ -28,7 +28,7 @@ class MessageBridgeProcess(ImdgBusProcess):
 
         sender = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
         receiver = ProtocolOwner.build(E_CATE.DOWNLOADER, E_CATE.E_DOWNLOADER.E_COMMON.DOWNLOAD_MANAGER)
-        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PLAYABLE_LIST_REQ)
+        factory = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.PLAYABLE_LIST_REQ)
         fwd_packet = factory(
             sender,
             receiver,
@@ -43,7 +43,7 @@ class MessageBridgeProcess(ImdgBusProcess):
     def handle_playable_list_response(self, packet: PlayableListRep) -> None:
         """DOWNLOADER에서 받은 PLAYABLE_LIST_REP를 PD_PLAYABLE_LIST_REP로 변환해 REST_SERVER로 IMDG 송신."""
         from process_category.enum_category import E_CATE
-        from protocol.message.external.ui.section_element import PDSectionElement
+        from protocol.message.external.replay.section_element import PDSectionElement
         from protocol.protocol_owner import ProtocolOwner
 
         # IMDG section_list는 list[dict] (jsonpickle 미사용 + asdict 직렬화) 또는 list[SectionElement]
@@ -64,7 +64,7 @@ class MessageBridgeProcess(ImdgBusProcess):
 
         response: ResponseInfo = packet.response or ResponseInfo()
         receiver = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
-        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PD_PLAYABLE_LIST_REP)
+        factory = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.PD_PLAYABLE_LIST_REP)
         sender = ProtocolOwner.build(self.get_app_name(), self.name)
 
         fwd_packet = factory(
@@ -130,7 +130,7 @@ class MessageBridgeProcess(ImdgBusProcess):
     def __forward_play_req(self, source: PlayReq, target_app: str, target_proc: str) -> None:
         sender = ProtocolOwner.build(self.get_app_name(), self.name)
         receiver = ProtocolOwner.build(target_app, target_proc)
-        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PLAY_REQ)
+        factory = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.PLAY_REQ)
         fwd_packet = factory(
             sender, receiver,
             source.section_id, source.vehicle_id, source.sensor_id_list,
@@ -143,7 +143,7 @@ class MessageBridgeProcess(ImdgBusProcess):
         from process_category.enum_category import E_CATE
 
         receiver = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
-        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PD_PLAY_REP)
+        factory = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.PD_PLAY_REP)
         sender = ProtocolOwner.build(self.get_app_name(), self.name)
 
         fwd_packet = factory(
@@ -165,7 +165,7 @@ class MessageBridgeProcess(ImdgBusProcess):
 
         sender = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
         receiver = ProtocolOwner.build(E_CATE.STREAMER, E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
-        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PAUSE_REQ)
+        factory = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.PAUSE_REQ)
         fwd_packet = factory(sender, receiver)
         envelope = ProtocolWrapper.get_protocol_wrapper(fwd_packet).get_protocol_packet_message()
         self.send_message_imdg(envelope)
@@ -177,7 +177,7 @@ class MessageBridgeProcess(ImdgBusProcess):
 
         response: ResponseInfo = packet.response or ResponseInfo()
         receiver = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
-        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PD_PAUSE_REP)
+        factory = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.PD_PAUSE_REP)
         sender = ProtocolOwner.build(self.get_app_name(), self.name)
 
         fwd_packet = factory(
@@ -202,7 +202,7 @@ class MessageBridgeProcess(ImdgBusProcess):
 
         sender = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
         receiver = ProtocolOwner.build(E_CATE.STREAMER, E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
-        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.SEEK_REQ)
+        factory = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.SEEK_REQ)
         fwd_packet = factory(sender, receiver, packet.start_time)
         envelope = ProtocolWrapper.get_protocol_wrapper(fwd_packet).get_protocol_packet_message()
         self.send_message_imdg(envelope)
@@ -214,7 +214,7 @@ class MessageBridgeProcess(ImdgBusProcess):
 
         response: ResponseInfo = packet.response or ResponseInfo()
         receiver = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
-        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PD_SEEK_REP)
+        factory = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.PD_SEEK_REP)
         sender = ProtocolOwner.build(self.get_app_name(), self.name)
 
         fwd_packet = factory(
@@ -239,7 +239,7 @@ class MessageBridgeProcess(ImdgBusProcess):
 
         sender = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
         receiver = ProtocolOwner.build(E_CATE.STREAMER, E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
-        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.CLOSE_REQ)
+        factory = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.CLOSE_REQ)
         fwd_packet = factory(sender, receiver)
         envelope = ProtocolWrapper.get_protocol_wrapper(fwd_packet).get_protocol_packet_message()
         self.send_message_imdg(envelope)
@@ -251,7 +251,7 @@ class MessageBridgeProcess(ImdgBusProcess):
 
         response: ResponseInfo = packet.response or ResponseInfo()
         receiver = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
-        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PD_CLOSE_REP)
+        factory = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.PD_CLOSE_REP)
         sender = ProtocolOwner.build(self.get_app_name(), self.name)
 
         fwd_packet = factory(
@@ -276,7 +276,7 @@ class MessageBridgeProcess(ImdgBusProcess):
 
         sender = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
         receiver = ProtocolOwner.build(E_CATE.STREAMER, E_CATE.E_STREAMER.E_COMMON.STREAMER_MANAGER)
-        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.STOP_REQ)
+        factory = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.STOP_REQ)
         fwd_packet = factory(sender, receiver)
         envelope = ProtocolWrapper.get_protocol_wrapper(fwd_packet).get_protocol_packet_message()
         self.send_message_imdg(envelope)
@@ -288,7 +288,7 @@ class MessageBridgeProcess(ImdgBusProcess):
 
         response: ResponseInfo = packet.response or ResponseInfo()
         receiver = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
-        factory = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PD_STOP_REP)
+        factory = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.PD_STOP_REP)
         sender = ProtocolOwner.build(self.get_app_name(), self.name)
 
         fwd_packet = factory(

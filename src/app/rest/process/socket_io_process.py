@@ -5,12 +5,12 @@ import asyncio
 from app.rest.websocket_server import SocketIOServer
 from common.process.imdg_bus_process import ImdgBusProcess
 from config.project_config import ProjectConfig
-from protocol.message.external.ui.close import PDCloseReq, PDCloseRep
-from protocol.message.external.ui.pause import PDPauseReq, PDPauseRep
-from protocol.message.external.ui.play import PDPlayReq, PDPlayRep
-from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
-from protocol.message.external.ui.seek import PDSeekReq, PDSeekRep
-from protocol.message.external.ui.stop import PDStopReq, PDStopRep
+from protocol.message.external.replay.close import PDCloseReq, PDCloseRep
+from protocol.message.external.replay.pause import PDPauseReq, PDPauseRep
+from protocol.message.external.replay.play import PDPlayReq, PDPlayRep
+from protocol.message.external.replay.playable_list import PDPlayableListReq, PDPlayableListRep
+from protocol.message.external.replay.seek import PDSeekReq, PDSeekRep
+from protocol.message.external.replay.stop import PDStopReq, PDStopRep
 from protocol.message.message import IMessage
 from protocol.protocol_meta import E_PROTOCOL_ID, ProtocolMeta
 from protocol.protocol_owner import ProtocolOwner
@@ -48,7 +48,7 @@ class SocketIOProcess(ImdgBusProcess):
         sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
         receiver = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
 
-        message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PLAYABLE_LIST_REQ)(
+        message = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.PLAYABLE_LIST_REQ)(
             sender,
             receiver,
             packet.vehicle_id,
@@ -70,7 +70,7 @@ class SocketIOProcess(ImdgBusProcess):
         sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
         receiver = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
 
-        message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PLAY_REQ)(
+        message = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.PLAY_REQ)(
             sender,
             receiver,
             packet.section_id,
@@ -93,7 +93,7 @@ class SocketIOProcess(ImdgBusProcess):
         sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
         receiver = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
 
-        message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.PAUSE_REQ)(
+        message = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.PAUSE_REQ)(
             sender,
             receiver,
         )
@@ -111,7 +111,7 @@ class SocketIOProcess(ImdgBusProcess):
         sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
         receiver = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
 
-        message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.SEEK_REQ)(
+        message = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.SEEK_REQ)(
             sender,
             receiver,
             packet.start_time,
@@ -130,7 +130,7 @@ class SocketIOProcess(ImdgBusProcess):
         sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
         receiver = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
 
-        message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.CLOSE_REQ)(
+        message = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.CLOSE_REQ)(
             sender,
             receiver,
         )
@@ -148,7 +148,7 @@ class SocketIOProcess(ImdgBusProcess):
         sender = ProtocolOwner.build(E_CATE.REST_SERVER, E_CATE.E_REST_SERVER.E_COMMON.REST_SERVER)
         receiver = ProtocolOwner.build(E_CATE.MESSAGE_BRIDGE, E_CATE.E_MESSAGE_BRIDGE.E_COMMON.MESSAGE_BRIDGE)
 
-        message = ProtocolMeta.get_protocol_factory(E_PROTOCOL_ID.STOP_REQ)(
+        message = ProtocolMeta.instance().get_protocol_factory(E_PROTOCOL_ID.STOP_REQ)(
             sender,
             receiver,
         )

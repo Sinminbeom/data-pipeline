@@ -19,25 +19,25 @@ from app.rest.process.socket_io_process import SocketIOProcess
 from app.streamer.process.manager.manager import StreamerManager
 from app.streamer.process.module.module import StreamerModule
 from protocol.inr_protocol_matcher.inr_pair_state import E_PROTOCOL_PAIR_STATE
-from protocol.message.external.ui.close import PDCloseReq, PDCloseRep
-from protocol.message.external.ui.pause import PDPauseReq, PDPauseRep
-from protocol.message.external.ui.play import PDPlayReq, PDPlayRep
-from protocol.message.external.ui.playable_list import PDPlayableListReq, PDPlayableListRep
-from protocol.message.external.ui.seek import PDSeekReq, PDSeekRep
-from protocol.message.external.ui.stop import PDStopReq, PDStopRep
-from protocol.message.imdg.close import CloseReq, CloseRep
-from protocol.message.imdg.pause import PauseReq, PauseRep
-from protocol.message.imdg.play import PlayReq, PlayRep
-from protocol.message.imdg.playable_list import PlayableListReq, PlayableListRep
-from protocol.message.imdg.seek import SeekReq, SeekRep
-from protocol.message.imdg.stop import StopReq, StopRep
+from protocol.message.external.replay.close import PDCloseReq, PDCloseRep
+from protocol.message.external.replay.pause import PDPauseReq, PDPauseRep
+from protocol.message.external.replay.play import PDPlayReq, PDPlayRep
+from protocol.message.external.replay.playable_list import PDPlayableListReq, PDPlayableListRep
+from protocol.message.external.replay.seek import PDSeekReq, PDSeekRep
+from protocol.message.external.replay.stop import PDStopReq, PDStopRep
+from protocol.message.imdg.replay.close import CloseReq, CloseRep
+from protocol.message.imdg.replay.pause import PauseReq, PauseRep
+from protocol.message.imdg.replay.play import PlayReq, PlayRep
+from protocol.message.imdg.replay.playable_list import PlayableListReq, PlayableListRep
+from protocol.message.imdg.replay.seek import SeekReq, SeekRep
+from protocol.message.imdg.replay.stop import StopReq, StopRep
 from protocol.message.message import IMessage
-from protocol.message.process.close import InrCloseReq, InrCloseRep
-from protocol.message.process.pause import InrPauseReq, InrPauseRep
-from protocol.message.process.play import InrPlayReq, InrPlayRep
-from protocol.message.process.playable_list import InrPlayableListReq, InrPlayableListRep
-from protocol.message.process.seek import InrSeekReq, InrSeekRep
-from protocol.message.process.stop import InrStopReq, InrStopRep
+from protocol.message.process.replay.close import InrCloseReq, InrCloseRep
+from protocol.message.process.replay.pause import InrPauseReq, InrPauseRep
+from protocol.message.process.replay.play import InrPlayReq, InrPlayRep
+from protocol.message.process.replay.playable_list import InrPlayableListReq, InrPlayableListRep
+from protocol.message.process.replay.seek import InrSeekReq, InrSeekRep
+from protocol.message.process.replay.stop import InrStopReq, InrStopRep
 from protocol.protocol_wrapper import ProtocolWrapper
 
 

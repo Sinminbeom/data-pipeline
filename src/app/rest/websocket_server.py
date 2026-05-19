@@ -88,8 +88,8 @@ class SocketIOServer(abWebSocketServer):
                 print("Rest Server Recv Packet MissMatch!!")
                 return
 
-            packet = ProtocolMeta.get_json_decoder(protocol_id)(message)
+            packet = ProtocolMeta.instance().get_json_decoder(protocol_id)(message)
             wrapper = ProtocolWrapper.get_protocol_wrapper(packet)
 
-            recv_handler = ProtocolMeta.get_receive_handler(protocol_id, receiver_name)
+            recv_handler = ProtocolMeta.instance().get_receive_handler(protocol_id, receiver_name)
             recv_handler(self.get_parent_process(), wrapper, packet)

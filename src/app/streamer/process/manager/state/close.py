@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from python_library.state import abState
 
-from protocol.message.imdg.close import CloseReq
+from protocol.message.imdg.replay.close import CloseReq
 
 if TYPE_CHECKING:
     from app.streamer.process.manager.manager import StreamerManager

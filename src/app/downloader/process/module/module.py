@@ -10,10 +10,10 @@ from python_library.storage.storage import IStorage
 
 from common.process.queue_control_process import QueueControlProcess
 from config.project_config import ProjectConfig
-from protocol.message.process.close import InrCloseReq
-from protocol.message.process.play import InrPlayReq
-from protocol.message.process.playable_list import InrPlayableListReq
-from protocol.message.process.stop import InrStopReq
+from protocol.message.process.replay.close import InrCloseReq
+from protocol.message.process.replay.play import InrPlayReq
+from protocol.message.process.replay.playable_list import InrPlayableListReq
+from protocol.message.process.replay.stop import InrStopReq
 
 from app.downloader.process.module.state import (
     E_DOWNLOADER_MODULE_STATE,

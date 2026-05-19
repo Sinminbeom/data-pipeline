@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from python_library.state import abState
 
-from protocol.message.imdg.playable_list import PlayableListReq
+from protocol.message.imdg.replay.playable_list import PlayableListReq
 
 if TYPE_CHECKING:
     from app.downloader.process.manager.manager import DownloaderManager

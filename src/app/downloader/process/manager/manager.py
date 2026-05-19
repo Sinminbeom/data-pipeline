@@ -4,11 +4,11 @@ from typing import Optional
 
 from common.process.imdg_bus_process import ImdgBusProcess
 from protocol.inr_protocol_matcher.inr_pair_state import E_PROTOCOL_PAIR_STATE
-from protocol.message.imdg.close import CloseReq
-from protocol.message.imdg.play import PlayReq
-from protocol.message.imdg.playable_list import PlayableListReq
-from protocol.message.process.playable_list import InrPlayableListRep
-from protocol.message.imdg.stop import StopReq
+from protocol.message.imdg.replay.close import CloseReq
+from protocol.message.imdg.replay.play import PlayReq
+from protocol.message.imdg.replay.playable_list import PlayableListReq
+from protocol.message.process.replay.playable_list import InrPlayableListRep
+from protocol.message.imdg.replay.stop import StopReq
 from protocol.message.message import IMessage
 from protocol.section_element import SectionElementContainer
 
@@ -73,7 +73,7 @@ class DownloaderManager(ImdgBusProcess):
           - change_state → 다음 메인 loop frame에 적용되는 reservation
         """
         from process_category.enum_category import E_CATE
-        from protocol.message.process.playable_list import InrPlayableListRep
+        from protocol.message.process.replay.playable_list import InrPlayableListRep
         from protocol.protocol_code import E_CODE, make_response_info
         from protocol.protocol_meta import E_PROTOCOL_ID
         from protocol.protocol_owner import ProtocolOwner

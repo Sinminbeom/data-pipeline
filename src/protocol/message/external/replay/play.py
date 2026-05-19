@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field
 
-from protocol.message.external.external import pdPacket, pdResponsePacket
+from protocol.message.external.external import abExternalMessage, abExternalResponseMessage
 
 
 @dataclass
-class PDPlayReq(pdPacket):
+class PDPlayReq(abExternalMessage):
     section_id: int = 0
     vehicle_id: str = ""
     sensor_id_list: list[str] = field(default_factory=list)
@@ -13,5 +13,5 @@ class PDPlayReq(pdPacket):
 
 
 @dataclass
-class PDPlayRep(pdResponsePacket):
+class PDPlayRep(abExternalResponseMessage):
     pass

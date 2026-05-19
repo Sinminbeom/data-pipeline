@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Optional
 from python_library.state import abState
 
 from config.project_config import ProjectConfig
-from protocol.message.process.play import InrPlayReq
+from protocol.message.process.replay.play import InrPlayReq
 
 from app.streamer.process.module.state.helper.pcap_player import PcapPlayer
 

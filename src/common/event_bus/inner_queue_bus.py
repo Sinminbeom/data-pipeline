@@ -37,7 +37,7 @@ class InnerQueueBus(abEventBus[QueueControlProcess]):
         app_name = self._parent_process.get_app_name()
         sender = ProtocolOwner.build(app_name, self._parent_process.name)
         receiver = ProtocolOwner.build(app_name, receiver_process_name)
-        factory = ProtocolMeta.get_protocol_factory(protocol_id)
+        factory = ProtocolMeta.instance().get_protocol_factory(protocol_id)
         packet = factory(sender, receiver, *args)
         self._wrap_and_send(receiver_process_name, packet)
 
@@ -64,6 +64,6 @@ class InnerQueueBus(abEventBus[QueueControlProcess]):
         app_name = self._parent_process.get_app_name()
         sender = ProtocolOwner.build(app_name, self._parent_process.name)
         receiver = ProtocolOwner.build(app_name, receiver_process_name)
-        factory = ProtocolMeta.get_protocol_factory(protocol_id)
+        factory = ProtocolMeta.instance().get_protocol_factory(protocol_id)
         packet = factory(sender, receiver, *args, response=response)
         self._wrap_and_send(receiver_process_name, packet)

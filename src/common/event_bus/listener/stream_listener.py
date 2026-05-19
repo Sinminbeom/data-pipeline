@@ -47,7 +47,7 @@ class StreamListener(abListener):
                 receiver = ProtocolWrapper.get_receiver_with_splits(splits)
 
                 wrapper, packet = ProtocolWrapper.decode_protocol_wrapper_with_message_protocol(envelope)
-                ProtocolMeta.get_receive_handler(wrapper.protocol_id, receiver)(
+                ProtocolMeta.instance().get_receive_handler(wrapper.protocol_id, receiver)(
                     self._parent_process, wrapper, packet
                 )
                 self._redis.xack(self._stream_name, self._group_name, msg_id)

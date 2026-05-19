@@ -43,7 +43,7 @@ class ImdgBus(abEventBus[ImdgBusProcess]):
         sender = ProtocolOwner.build(
             self._parent_process.get_app_name(), self._parent_process.name
         )
-        factory = ProtocolMeta.get_protocol_factory(protocol_id)
+        factory = ProtocolMeta.instance().get_protocol_factory(protocol_id)
         packet = factory(sender, receiver, *args)
         self._wrap_and_send(packet)
 
@@ -60,6 +60,6 @@ class ImdgBus(abEventBus[ImdgBusProcess]):
         sender = ProtocolOwner.build(
             self._parent_process.get_app_name(), self._parent_process.name
         )
-        factory = ProtocolMeta.get_protocol_factory(protocol_id)
+        factory = ProtocolMeta.instance().get_protocol_factory(protocol_id)
         packet = factory(sender, receiver, *args, response=response)
         self._wrap_and_send(packet)

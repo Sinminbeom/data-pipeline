@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 
 from python_library.state import abState
 
-from protocol.message.imdg.stop import StopReq
+from protocol.message.imdg.replay.stop import StopReq
 
 if TYPE_CHECKING:
     from app.downloader.process.manager.manager import DownloaderManager
